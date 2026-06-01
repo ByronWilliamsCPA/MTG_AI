@@ -81,7 +81,7 @@ jobs:
           retention-days: 30
 
   security-gate-success:
-    name: Security Gate Validation
+    name: Security Analysis / Security Gate Validation
     runs-on: ubuntu-latest
     timeout-minutes: 10
     needs: [security]
