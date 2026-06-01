@@ -1,0 +1,33 @@
+# SonarCloud Analysis
+# Runs after CI to include coverage data in the SonarCloud quality gate.
+# Requires SONAR_TOKEN repository secret from https://sonarcloud.io/account/security
+name: SonarCloud
+
+on:
+  workflow_run:
+    workflows: ["CI"]
+    types: [completed]
+  push:
+    branches: [main, master, develop]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  sonarcloud:
+    name: SonarCloud Analysis
+    if: |
+      github.event_name != 'workflow_run' ||
+      github.event.workflow_run.conclusion == 'success'
+    uses: ByronWilliamsCPA/.github/.github/workflows/python-sonarcloud.yml@40ff5b5615e786ee0867e1b9e8f21a4735036e63  # main
+    permissions:
+      contents: read
+      pull-requests: write
+    with:
+      sonar-organization: 'byronwilliamscpa'
+      sonar-project-key: 'ByronWilliamsCPA_MTG_AI'
+      coverage-paths: 'coverage.xml'
+    secrets:
+      SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}

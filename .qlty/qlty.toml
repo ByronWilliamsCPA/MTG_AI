@@ -5,16 +5,13 @@
 config_version = "0"
 
 [plugins]
-# ruff: linting and formatting (standard qlty plugin)
-# bandit: security scanning via qlty plugin
-# Note: basedpyright is not in qlty's registry; type checking runs in ci.yml
-enabled = ["ruff", "bandit"]
+# ruff: linting and formatting (standard qlty plugin, no build required)
+# Note: basedpyright and bandit are not used via qlty; they run in ci.yml
+# and pre-commit hooks instead where the full Python environment is available
+enabled = ["ruff"]
 
 [plugin.ruff]
 # Ruff configuration is inherited from pyproject.toml [tool.ruff] section
-
-[plugin.bandit]
-# Bandit configuration is inherited from pyproject.toml [tool.bandit] section
 
 # File patterns to completely exclude from all analysis
 exclude_patterns = [
