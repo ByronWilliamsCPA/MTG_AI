@@ -28,7 +28,7 @@ This feedback will be shared with the template team to improve the cookiecutter 
 
 1. Sign every commit (`git commit -S`); never bypass with `--no-gpg-sign`.
 2. Use Conventional Commits for every commit message and PR title.
-3. Never use em-dash characters (`—`) in any output; use a comma, semicolon,
+3. Never use em-dash characters (U+2014) in any output; use a comma, semicolon,
    colon, or restructured sentence.
 4. Tag production-risk assumptions with RAD markers (`#CRITICAL`, `#ASSUME`,
    `#EDGE`) paired with `#VERIFY` instructions.

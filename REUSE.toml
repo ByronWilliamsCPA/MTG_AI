@@ -104,6 +104,7 @@ path = [
     "Makefile",
     "justfile",
     "Taskfile.yml",
+    ".secrets.baseline",
 ]
 SPDX-License-Identifier = "CC0-1.0"
 SPDX-FileCopyrightText = "2026 Byron Williams <byronawilliams@gmail.com>"

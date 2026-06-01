@@ -15,7 +15,7 @@ All AI assistants working in this repository must follow these rules:
   `--no-gpg-sign`.
 - **Conventional Commits**: All commit messages and PR titles must follow the
   Conventional Commits specification (`feat:`, `fix:`, `docs:`, `chore:`, etc.).
-- **No em-dashes**: Never use em-dash characters (`-`) in any output, including
+- **No em-dashes**: Never use em-dash characters (U+2014) in any output, including
   docs, comments, and commit messages. Use a comma, semicolon, or colon instead.
 - **RAD tagging**: Tag assumptions that could cause production failures with
   `#CRITICAL`, `#ASSUME`, or `#EDGE` markers paired with `#VERIFY` instructions.

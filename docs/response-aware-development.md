@@ -6,8 +6,8 @@ RAD tagging standards, comment marker syntax, and verification workflow for this
 project are documented in `CLAUDE.md` under the "Response-Aware Development (RAD)"
 section.
 
-The canonical tagging syntax and full examples live in the global Claude standards
-at `~/.claude/CLAUDE.md` and `~/.claude/docs/response-aware-development.md`.
+The canonical tagging syntax and full examples for this project are in
+[`CLAUDE.md`](../CLAUDE.md) under the "Response-Aware Development (RAD)" section.
 
 ## Quick Reference
 

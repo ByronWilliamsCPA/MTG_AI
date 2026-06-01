@@ -267,7 +267,8 @@ repos:
           (?x)^(
             \.git/|
             \.venv/|
-            node_modules/
+            node_modules/|
+            \.pre-commit-config\.yaml
           )
 
 # Exclude patterns
