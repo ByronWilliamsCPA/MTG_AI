@@ -42,3 +42,4 @@ jobs:
       severity-threshold: 'CRITICAL,HIGH'
       artifact-retention-days: 90
       fail-on-forbidden-licenses: false
+      no-build: false
