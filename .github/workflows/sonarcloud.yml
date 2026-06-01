@@ -26,5 +26,6 @@ jobs:
       sonar-project-key: 'ByronWilliamsCPA_MTG_AI'
       coverage-paths: 'coverage.xml'
       source-directory: 'src'
+      no-build: false
     secrets:
       SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
