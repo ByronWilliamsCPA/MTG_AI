@@ -1,38 +1,284 @@
-# Python
+# Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
-*.egg-info/
-.eggs/
+*$py.class
+
+# C extensions
+*.so
+
+# Distribution / packaging
+.Python
 build/
+develop-eggs/
 dist/
-.venv/
-venv/
-.uv/
-.pytest_cache/
-.ruff_cache/
-.mypy_cache/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+pip-wheel-metadata/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# PyInstaller
+*.manifest
+*.spec
+
+# Installer logs
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.nox/
 .coverage
+.coverage.*
+.cache
+nosetests.xml
 coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+.pytest_cache/
+pytest-html-report/
+test-results/
+
+# Translations
+*.mo
+*.pot
+
+# Django stuff:
+*.log
+local_settings.py
+db.sqlite3
+db.sqlite3-journal
+
+# Flask stuff:
+instance/
+.webassets-cache
+
+# Scrapy stuff:
+.scrapy
+
+# Sphinx documentation
+docs/_build/
+
+# PyBuilder
+target/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+*.ipynb
+
+# IPython
+profile_default/
+ipython_config.py
+
+# pyenv
+.python-version
+
+# pipenv
+Pipfile.lock
+
+# PEP 582
+__pypackages__/
+
+# Celery stuff
+celerybeat-schedule
+celerybeat.pid
+
+# SageMath parsed files
+*.sage.py
+
+# Environments
+.env
+.env.local
+.env.*.local
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Google Cloud / Assured OSS Credentials
+**/service-account*.json
+**/gcp-credentials*.json
+**/*-key.json
+.gcloud/
+.config/gcloud/
+
+# Hugging Face
+.cache/huggingface/
+**/.cache/huggingface/
+huggingface_cache/
+
+# Modal Labs
+.modal/
+**/.modal/
+
+# Spyder project settings
+.spyderproject
+.spyproject
+
+# Rope project settings
+.ropeproject
+
+# mkdocs documentation
+/site
+
+# mypy
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# Pyre type checker
+.pyre/
+
+# Ruff cache
+.ruff_cache/
+
+# IDE specific files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+.project
+.pydevproject
+.settings/
+*.sublime-project
+*.sublime-workspace
+.clj-kondo/
+.lsp/
+
+# Pre-commit
+.pre-commit-framework-cache
+
+# OS specific files
+.DS_Store
+Thumbs.db
+.AppleDouble
+.LSOverride
+
+# Pytest
+.pytest_cache
+test-results/
 htmlcov/
 
-# Node / frontend
-node_modules/
-dist-ssr/
-*.local
-.vite/
+# Coverage
+.coverage
+.coverage.*
+htmlcov/
+coverage.xml
 
-# Env / secrets
-.env
-.env.*
-!.env.example
-*.pem
-
-# Data (bulk imports, embeddings dumps)
-data/raw/
-data/cache/
+# Database files
+*.db
+*.sqlite
 *.sqlite3
 
-# IDE / OS
-.idea/
-.vscode/
+# Temporary files
+tmp/
+temp/
+*.tmp
+*.bak
+*.swp
+*.swo
+*~
+
+# Local configuration
+local.ini
+local.conf
+
+# Node modules (if using any Node tools)
+node_modules/
+
+# Docker
+docker-compose.override.yml
+
+# Mutation testing
+.mutmut-cache
+
+# MyPy
+.mypy_cache/
+
+# Virtual environments
+.venv
+env/
+venv/
+ENV/
+
+# IDE and Editor files
+.vscode
+.idea
+.sublime-project
+.sublime-workspace
+*.code-workspace
+*.swp
+*.swo
+*~
+
+# OS-specific
 .DS_Store
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Pytest
+.pytest_cache/
+pytest-html-report/
+
+# Build and dist
+build/
+dist/
+*.egg-info/
+
+# SBOM (Software Bill of Materials)
+sbom-*.json
+sbom-*.xml
+*.cdx.json
+*.spdx.json
+reuse-spdx.json
+
+# Credentials and secrets
+*.pem
+*.key
+*.cert
+credentials.json
+secrets.json
+.aws/
+.ssh/
+
+# Logs
+logs/
+*.log
+
+# Data and models (customize as needed)
+data/raw/
+data/processed/
+models/
+weights/
+
+# Notebooks
+.ipynb_checkpoints/
+notebooks/.ipynb_checkpoints/
+
+# Project-specific ignores
+results/
+output/
+
+# Temporary reference files (anti-compaction strategy)
+# Keep the directory, but ignore .tmp-* files inside it
+tmp_cleanup/.tmp-*
+!tmp_cleanup/.gitkeep
+

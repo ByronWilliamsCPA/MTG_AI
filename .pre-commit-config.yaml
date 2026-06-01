@@ -1,0 +1,238 @@
+# Pre-commit hooks configuration
+# See https://pre-commit.com for more information
+#
+# Hook stages:
+# - pre-commit: Fast checks on every commit (formatting, syntax, security)
+# - pre-push: Full quality checks before pushing (Qlty, full scans)
+# - commit-msg: Conventional commit message validation
+#
+# Installation: curl https://qlty.sh | bash
+# Documentation: https://docs.qlty.sh
+
+ci:
+  autoupdate_schedule: monthly
+  autofix_prs: true
+  skip: [validate-front-matter, qlty-check, qlty-full, trufflehog, bandit, bandit-full]  # Skip local-only hooks
+
+repos:
+  # ============================================================================
+  # Fast File Checks (Lightweight, run on every commit)
+  # ============================================================================
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: c4a0b883114b00d8d76b479c820ce7950211c99b  # v4.5.0
+    hooks:
+      - id: trailing-whitespace
+        stages: [pre-commit]
+      - id: end-of-file-fixer
+        stages: [pre-commit]
+      - id: check-yaml
+        stages: [pre-commit]
+        exclude: mkdocs.yml  # Exclude mkdocs.yml due to !ENV custom tags
+      - id: check-json
+        stages: [pre-commit]
+      - id: check-toml
+        stages: [pre-commit]
+      - id: check-added-large-files
+        args: ['--maxkb=10000']  # 10MB limit
+        stages: [pre-commit]
+      - id: check-merge-conflict
+        stages: [pre-commit]
+      - id: check-case-conflict
+        stages: [pre-commit]
+      - id: detect-private-key
+        stages: [pre-commit]
+      - id: mixed-line-ending
+        args: ['--fix=lf']
+        stages: [pre-commit]
+      - id: debug-statements
+        stages: [pre-commit]
+      - id: check-executables-have-shebangs
+        stages: [pre-commit]
+      - id: check-shebang-scripts-are-executable
+        stages: [pre-commit]
+
+  # ============================================================================
+  # Secret Detection - TruffleHog
+  # ============================================================================
+  # Advanced secret detection beyond detect-private-key
+  # Detects API keys, tokens, credentials, and other secrets
+  # Uses local system-installed trufflehog to avoid Go build issues
+  # Install: brew install trufflehog (macOS) or see https://github.com/trufflesecurity/trufflehog#installation
+  - repo: local
+    hooks:
+      - id: trufflehog
+        name: TruffleHog Secret Scanner
+        description: Detect secrets in your data before committing
+        entry: bash -c 'command -v trufflehog >/dev/null 2>&1 && trufflehog git file://. --since-commit HEAD --results=verified,unknown --fail || echo "TruffleHog not installed - skipping secret scan"'
+        language: system
+        pass_filenames: false
+        stages: [pre-commit]
+
+  # ============================================================================
+  # Security Scanning - Bandit
+  # ============================================================================
+  # Dedicated Bandit hook for Python security analysis
+  # Runs on changed files during pre-commit, full scan on pre-push
+  # Configuration in pyproject.toml [tool.bandit]
+  - repo: https://github.com/PyCQA/bandit
+    rev: 36fd65054fc8864b4037d0918904f9331512feb5  # 1.7.10
+    hooks:
+      - id: bandit
+        name: Bandit Security Scan (changed files)
+        args: ['-c', 'pyproject.toml', '-ll']  # Medium+ severity only
+        stages: [pre-commit]
+        exclude: ^(tests|scripts|benchmarks|tools|fuzz)/
+
+  # Full Bandit scan on pre-push (catches all issues before PR)
+  - repo: local
+    hooks:
+      - id: bandit-full
+        name: Bandit Security Scan (full src/)
+        entry: uv run bandit -c pyproject.toml -r src/ -ll -q
+        language: system
+        pass_filenames: false
+        stages: [pre-push]
+        always_run: true
+
+  # ============================================================================
+  # Conventional Commits Enforcement
+  # ============================================================================
+  # Enforces conventional commit message format for semantic versioning
+  - repo: https://github.com/compilerla/conventional-pre-commit
+    rev: 406f0d1a4ffcd9eb0be9f0f6b824df619b38f41e  # v3.4.0
+    hooks:
+      - id: conventional-pre-commit
+        stages: [commit-msg]
+        args: [feat, fix, docs, style, refactor, perf, test, build, ci, chore, revert]
+
+  # ============================================================================
+  # pyproject.toml Validation
+  # ============================================================================
+  - repo: https://github.com/abravalheri/validate-pyproject
+    rev: 435e09f5ed9fe57f3444ebfa54c663d0ac8033fe  # v0.20.2
+    hooks:
+      - id: validate-pyproject
+        stages: [pre-commit]
+
+  # ============================================================================
+  # GitHub Workflow Validation
+  # ============================================================================
+  - repo: https://github.com/python-jsonschema/check-jsonschema
+    rev: 4e7291655d44e99511858efd33bea0bdbb58d835  # 0.29.4
+    hooks:
+      - id: check-github-workflows
+        stages: [pre-commit]
+
+  # ============================================================================
+  # Ruff Linting and Formatting (Fast, pre-commit stage)
+  # ============================================================================
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: fa1ed65ba95bfa7771a71003a9d74402541f5a5c  # v0.14.6
+    hooks:
+      - id: ruff
+        stages: [pre-commit]
+        args: [--fix, --exit-non-zero-on-fix]
+      - id: ruff-format
+        stages: [pre-commit]
+
+  # ============================================================================
+  # Qlty Unified Quality Checks (Pre-Push)
+  # ============================================================================
+  # Moved to pre-push to avoid clogging PR reviews with issues
+  # Qlty runs all quality tools in a single pass:
+  # - Ruff (linting + formatting)
+  # - BasedPyright (type checking)
+  # - Gitleaks (secrets detection)
+  # - Markdownlint (markdown linting)
+  # - Yamllint (YAML linting)
+  # - OSV Scanner (dependency vulnerabilities)
+  # - Code smells and complexity analysis
+  #
+  # Configure via .qlty/qlty.toml
+  # Install: curl https://qlty.sh | bash && qlty plugins install
+  - repo: local
+    hooks:
+      - id: qlty-check
+        name: Qlty Code Quality Check (changed files)
+        entry: >-
+          bash -c "command -v qlty >/dev/null 2>&1 && qlty check --filter=diff || echo 'Qlty not installed - skipping (install: curl https://qlty.sh | bash)'"
+        language: system
+        types: [file]
+        pass_filenames: false
+        stages: [pre-push]
+        verbose: true
+
+      - id: qlty-full
+        name: Qlty Full Quality Check (all files)
+        entry: >-
+          bash -c "command -v qlty >/dev/null 2>&1 && qlty check src/ || echo 'Qlty not installed - skipping'"
+        language: system
+        pass_filenames: false
+        stages: [pre-push]
+        verbose: true
+
+
+  # ============================================================================
+  # Custom Documentation Validation
+  # ============================================================================
+  - repo: local
+    hooks:
+      - id: validate-front-matter
+        name: Validate documentation front matter
+        entry: python tools/validate_front_matter.py docs
+        language: python
+        files: ^docs/(?!planning/).*\.md$
+        pass_filenames: false
+        stages: [pre-commit]
+        additional_dependencies:
+          - python-frontmatter>=1.1.0
+          - pydantic>=2.0
+          - ruamel.yaml>=0.18
+
+
+  # ============================================================================
+  # Python Docstring Coverage
+  # ============================================================================
+  # Interrogate ensures all Python code has proper docstrings
+  # Target: 85% coverage
+  - repo: https://github.com/econchick/interrogate
+    rev: 4894019dc8876092bc9b6d56878798c550fad998  # 1.7.0
+    hooks:
+      - id: interrogate
+        args: ['-v', '-c', 'pyproject.toml', 'src/']
+        language_version: python3.12
+        pass_filenames: false
+        stages: [pre-commit]
+
+  # ============================================================================
+  # Docstring Argument Validation
+  # ============================================================================
+  # Pydoclint validates that docstring arguments match function signatures
+  # Configuration in pyproject.toml [tool.pydoclint]
+  - repo: https://github.com/jsh9/pydoclint
+    rev: 88d83c94156c5e51a09938e77019f2c58e92ab58  # 0.8.4
+    hooks:
+      - id: pydoclint
+        args: ["--config=pyproject.toml"]
+        types: [python]
+        stages: [pre-commit]
+        exclude: ^(tests|scripts|benchmarks|tools)/
+
+# Exclude patterns
+exclude: |
+  (?x)^(
+      \.git/|
+      \.venv/|
+      venv/|
+      build/|
+      dist/|
+      .*\.egg-info/|
+      __pycache__/|
+      \.mypy_cache/|
+      \.pytest_cache/|
+      \.ruff_cache/|
+      data/|
+      models/|
+      .*\.pyc
+  )$
+

@@ -1,0 +1,44 @@
+# Mutation Testing for MTG AI
+# Validates test effectiveness by introducing code mutations.
+#
+# This is a thin caller to the org-level reusable workflow.
+#
+# Documentation: https://mutmut.readthedocs.io/
+name: Mutation Testing
+
+on:
+  # Weekly schedule - Sundays at 2 AM UTC
+  schedule:
+    - cron: '0 2 * * 0'
+  # Manual trigger with configurable threshold
+  workflow_dispatch:
+    inputs:
+      mutation_threshold:
+        description: 'Minimum mutation score threshold (%)'
+        required: false
+        default: '80'
+        type: string
+# Cancel in-progress runs for same PR/branch
+concurrency:
+  group: mutation-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  mutation:
+    name: Mutation Testing
+    # Skip on forks (no PR comment permissions)
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+    uses: ByronWilliamsCPA/.github/.github/workflows/python-mutation.yml@main
+    with:
+      python-version: '3.12'
+      source-directory: 'src'
+      test-directory: 'tests'
+      mutation-threshold: ${{ github.event.inputs.mutation_threshold && fromJSON(github.event.inputs.mutation_threshold) || 80 }}
+      fail-under-threshold: ${{ github.event_name != 'schedule' }}
+      post-pr-comment: true
+      timeout-minutes: 60
+    secrets: inherit

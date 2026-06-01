@@ -1,0 +1,42 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+dist-ssr/
+*.local
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+pnpm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Test coverage
+coverage/
+
+# Environment files (use .env.example as template)
+.env
+.env.local
+.env.*.local
+
+# Generated API client (regenerate with npm run generate-client)
+src/client/
+
+# TypeScript build info
+*.tsbuildinfo
+
+# Vite cache
+.vite/

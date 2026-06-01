@@ -1,0 +1,108 @@
+# Production overrides for docker-compose.yml
+# Usage: docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+
+version: '3.9'
+
+services:
+  app:
+    # Production image (pre-built)
+    # image: ghcr.io/ByronWilliamsCPA/mtg_ai:${VERSION:-latest}
+
+    # Don't mount source code in production
+    volumes: []
+
+    environment:
+      ENVIRONMENT: production
+      JSON_LOGS: "true"
+      LOG_LEVEL: ${LOG_LEVEL:-WARNING}
+
+    # Production replicas (for load balancing)
+    deploy:
+      replicas: ${REPLICAS:-2}
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 512M
+        reservations:
+          cpus: '0.5'
+          memory: 256M
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+        window: 120s
+      update_config:
+        parallelism: 1
+        delay: 10s
+        failure_action: rollback
+        order: start-first
+
+frontend:
+    # Production frontend (nginx serving built assets)
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      target: production
+      args:
+        VITE_API_URL: ${VITE_API_URL:-/api}
+    image: mtg_ai-frontend:${VERSION:-latest}
+    ports:
+      - "${FRONTEND_PORT:-80}:80"
+
+    deploy:
+      replicas: ${FRONTEND_REPLICAS:-1}
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 128M
+        reservations:
+          cpus: '0.1'
+          memory: 64M
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+
+db:
+    # Production database settings
+    environment:
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?DB_PASSWORD must be set in production}
+
+    # Increased connection pool
+    command: >
+      postgres
+      -c max_connections=100
+      -c shared_buffers=256MB
+      -c effective_cache_size=1GB
+      -c maintenance_work_mem=64MB
+      -c checkpoint_completion_target=0.9
+      -c wal_buffers=16MB
+      -c default_statistics_target=100
+      -c random_page_cost=1.1
+      -c effective_io_concurrency=200
+
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 2G
+        reservations:
+          cpus: '1.0'
+          memory: 1G
+
+# =============================================================================
+# Production Usage
+# =============================================================================
+# 1. Set environment variables in .env file or export them:
+#    export DB_PASSWORD=secure-production-password
+#    export SENTRY_DSN=your-sentry-dsn
+#    export VERSION=v1.0.0
+#
+# 2. Start services:
+#    docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+#
+# 3. Scale application:
+#    docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d --scale app=3
+#
+# 4. Monitor:
+#    docker-compose -f docker-compose.yml -f docker-compose.prod.yml logs -f

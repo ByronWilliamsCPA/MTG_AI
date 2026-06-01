@@ -1,0 +1,262 @@
+# FIPS Compatibility Check Workflow
+# Checks code and dependencies for FIPS 140-2/140-3 compliance issues.
+#
+# FIPS (Federal Information Processing Standards) mode restricts cryptographic
+# algorithms to NIST-approved ones. This is required for:
+#   - US Government systems
+#   - Healthcare (HIPAA)
+#   - Financial services
+#   - Ubuntu LTS with fips-updates package
+#
+# Features:
+#   - Static analysis for non-FIPS crypto usage
+#   - Dependency scanning for problematic packages
+#   - Optional strict mode for zero-tolerance
+name: FIPS Compatibility
+
+on:
+  push:
+    branches: [main, master]
+    paths:
+      - 'src/**/*.py'
+      - 'pyproject.toml'
+      - 'requirements*.txt'
+      - '.github/workflows/fips-compatibility.yml'
+  pull_request:
+    branches: [main, master]
+    paths:
+      - 'src/**/*.py'
+      - 'pyproject.toml'
+      - 'requirements*.txt'
+  schedule:
+    # Run weekly on Monday at 10 AM UTC
+    - cron: '0 10 * * 1'
+  workflow_dispatch:
+    inputs:
+      strict_mode:
+        description: 'Treat warnings as errors'
+        required: false
+        default: false
+        type: boolean
+
+# Cancel in-progress runs for same PR/branch
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  fips-check:
+    name: FIPS Compliance Check
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - name: Harden the runner
+        uses: step-security/harden-runner@9af89fc71515a100421586dfdb3dc9c984fbf411 # v2.19.4
+        with:
+          egress-policy: audit
+
+      - name: Checkout repository
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b # v8.1.0
+        with:
+          enable-cache: true
+
+      - name: Set up Python
+        run: uv python install 3.12
+
+      - name: Run FIPS compatibility check
+        id: fips-check
+        run: |
+          # Run the FIPS check script
+          STRICT_FLAG=""
+          if [[ "${{ github.event.inputs.strict_mode }}" == "true" ]]; then
+            STRICT_FLAG="--strict"
+          fi
+
+          # Run check and capture output
+          set +e
+          uv run python scripts/check_fips_compatibility.py \
+            --fix-hints \
+            --include-tests \
+            $STRICT_FLAG \
+            2>&1 | tee fips-report.txt
+          EXIT_CODE=$?
+          set -e
+
+          # Also generate JSON report
+          uv run python scripts/check_fips_compatibility.py \
+            --json \
+            --include-tests \
+            > fips-report.json 2>/dev/null || true
+
+          echo "exit_code=$EXIT_CODE" >> $GITHUB_OUTPUT
+
+          # Extract summary for PR comment
+          if [ -f fips-report.json ]; then
+            ERRORS=$(jq -r '.summary.errors' fips-report.json)
+            WARNINGS=$(jq -r '.summary.warnings' fips-report.json)
+            INFO=$(jq -r '.summary.info' fips-report.json)
+            echo "errors=$ERRORS" >> $GITHUB_OUTPUT
+            echo "warnings=$WARNINGS" >> $GITHUB_OUTPUT
+            echo "info=$INFO" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Upload FIPS report
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: fips-compatibility-report
+          path: |
+            fips-report.txt
+            fips-report.json
+          retention-days: 30
+
+      - name: Comment on PR
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        with:
+          script: |
+            const errors = parseInt('${{ steps.fips-check.outputs.errors }}') || 0;
+            const warnings = parseInt('${{ steps.fips-check.outputs.warnings }}') || 0;
+            const info = parseInt('${{ steps.fips-check.outputs.info }}') || 0;
+
+            let status = '✅ PASSED';
+            let emoji = '✅';
+            if (errors > 0) {
+              status = '❌ FAILED';
+              emoji = '❌';
+            } else if (warnings > 0) {
+              status = '⚠️ NEEDS REVIEW';
+              emoji = '⚠️';
+            }
+
+            const body = `## ${emoji} FIPS Compatibility Check
+
+            | Metric | Count |
+            |--------|-------|
+            | Errors | ${errors} |
+            | Warnings | ${warnings} |
+            | Info | ${info} |
+
+            **Status:** ${status}
+
+            ${errors > 0 ? '⚠️ This PR introduces FIPS-incompatible code or dependencies. Please review the [workflow run](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}) for details.' : ''}
+            ${warnings > 0 && errors === 0 ? 'ℹ️ Some packages may need verification for FIPS compliance. See the workflow artifacts for details.' : ''}
+
+            <details>
+            <summary>What is FIPS?</summary>
+
+            FIPS 140-2/140-3 is a US government standard for cryptographic modules.
+            Systems running Ubuntu LTS with \`fips-updates\` or similar configurations
+            restrict cryptographic algorithms to NIST-approved ones.
+
+            **Common issues:**
+            - Using \`hashlib.md5()\` without \`usedforsecurity=False\`
+            - Dependencies using non-approved algorithms (bcrypt, DES, RC4)
+            - Weak cipher configurations
+
+            </details>
+            `;
+
+            // Find existing comment
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+
+            const botComment = comments.find(comment =>
+              comment.user.type === 'Bot' &&
+              comment.body.includes('FIPS Compatibility Check')
+            );
+
+            if (botComment) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: botComment.id,
+                body: body
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: body
+              });
+            }
+
+      - name: Check result
+        if: steps.fips-check.outputs.exit_code != '0'
+        run: |
+          echo "::error::FIPS compatibility issues found. See the report for details."
+          exit 1
+
+  # Optional: Test on actual FIPS-enabled environment
+  fips-runtime-test:
+    name: FIPS Runtime Test
+    runs-on: ubuntu-latest
+    if: github.event_name == 'schedule' || github.event.inputs.strict_mode == 'true'
+    needs: fips-check
+
+    permissions:
+      contents: read
+    steps:
+      - name: Harden the runner
+        uses: step-security/harden-runner@9af89fc71515a100421586dfdb3dc9c984fbf411 # v2.19.4
+        with:
+          egress-policy: audit
+
+      - name: Checkout repository
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b # v8.1.0
+        with:
+          enable-cache: true
+
+      - name: Set up Python
+        run: uv python install 3.12
+
+      - name: Install dependencies
+        run: uv sync --all-extras
+
+      - name: Test crypto imports in simulated FIPS mode
+        run: |
+          # This tests if the code can import without using non-FIPS algorithms
+          # Note: Full FIPS testing requires an actual FIPS-enabled kernel
+          uv run python -c "
+          import os
+          import sys
+
+          # Simulate FIPS mode check
+          print('Testing crypto imports...')
+
+          # Test hashlib with usedforsecurity parameter
+          import hashlib
+          try:
+              # This should work - non-security use
+              h = hashlib.md5(b'test', usedforsecurity=False)
+              print('✓ hashlib.md5 with usedforsecurity=False works')
+          except Exception as e:
+              print(f'✗ hashlib.md5 error: {e}')
+              sys.exit(1)
+
+          # Test that SHA-256 works (FIPS approved)
+          try:
+              h = hashlib.sha256(b'test')
+              print('✓ hashlib.sha256 works')
+          except Exception as e:
+              print(f'✗ hashlib.sha256 error: {e}')
+              sys.exit(1)
+
+          print('\\nBasic FIPS compatibility: PASSED')
+          "

@@ -1,0 +1,238 @@
+# Codecov Configuration for MTG AI
+# Self-hosted competitive Commander (cEDH) deck-critique assistant: RAG over Scryfall/MTGJSON/meta data with a deterministic rules engine and a swappable generation backend.
+
+# Security: Only read configuration from main branch
+codecov:
+  strict_yaml_branch: main
+  require_ci_to_pass: true
+  max_report_age: 12h
+  notify:
+    # Wait for all 4 coverage uploads (unit + integration + security + combined)
+    # before firing statuses/comments. Prevents premature failure on first upload.
+    after_n_builds: 4
+    wait_for_ci: true
+
+# Coverage targets and thresholds
+coverage:
+  precision: 2
+  round: down
+  range: 70..95
+
+  status:
+    project:
+      default:
+        # Current baseline: ~80%, targeting 80%+
+        target: "80%"
+        threshold: 2%
+        if_ci_failed: error
+        # Prevent deadlock on doc-only/config-only PRs with no coverage uploaded
+        if_not_found: success
+
+    patch:
+      default:
+        # New code must meet 90% patch coverage per OpenSSF standards
+        target: 90%
+        threshold: 5%
+        if_ci_failed: error
+        if_not_found: success
+        # Pass gracefully when well-tested code is deleted (avoids penalizing cleanup PRs)
+        removed_code_behavior: fully_covered_patch
+
+# Multi-flag tracking for test types
+# See: https://docs.codecov.com/docs/flags
+flags:
+  unit:
+    # Unit tests should have highest coverage target
+    carryforward: true
+    paths:
+      - src/mtg_ai/
+
+  integration:
+    # Integration tests may have lower coverage
+    carryforward: true
+    paths:
+      - src/mtg_ai/
+
+  security:
+    # Security-focused tests
+    carryforward: true
+    paths:
+      - src/mtg_ai/
+
+  # Python version flags (CI workflow uploads)
+  python-3.10:
+    carryforward: true
+  python-3.11:
+    carryforward: true
+  python-3.12:
+    carryforward: true
+  python-3.13:
+    carryforward: true
+  python-3.14:
+    carryforward: true
+
+# Flag-specific coverage targets
+# Enables different thresholds per test type
+flag_management:
+  default_rules:
+    carryforward: true
+    # Don't create a failing status for flags not uploaded in this PR/commit.
+    # Prevents false failures when only some test types run (e.g., fast-path CI).
+    flag_coverage_not_uploaded_behavior: exclude
+    statuses:
+      - type: project
+        target: auto
+        threshold: 2%
+        if_not_found: success
+
+  individual_flags:
+    - name: unit
+      behavior: default
+      statuses:
+        - type: project
+          target: 85%
+          threshold: 2%
+          if_ci_failed: error
+          if_not_found: success
+        - type: patch
+          target: 90%
+          threshold: 5%
+          if_not_found: success
+
+    - name: integration
+      behavior: default
+      statuses:
+        - type: project
+          target: 70%
+          threshold: 3%
+          if_ci_failed: error
+          if_not_found: success
+        - type: patch
+          target: 70%
+          threshold: 5%
+          if_not_found: success
+
+    - name: security
+      behavior: default
+      statuses:
+        - type: project
+          target: auto
+          threshold: 2%
+          if_not_found: success
+        - type: patch
+          target: 80%
+          threshold: 5%
+          if_not_found: success
+
+# Component-based coverage tracking
+component_management:
+  individual_components:
+    # Core module
+    - component_id: core
+      name: Core Module
+      paths:
+        - src/mtg_ai/**
+
+# Paths to ignore from coverage
+ignore:
+  # Test directories
+  - "tests/**"
+  - "**/*_test.py"
+  - "**/test_*.py"
+
+  # Validation scripts (not production code)
+  - "validation/**"
+
+  # Python cache and compiled files
+  - "**/__pycache__/**"
+  - "**/*.pyc"
+  - "**/*.pyo"
+  - "**/*.pyd"
+  - "**/*.so"
+  - "**/*.dll"
+  - "**/*.dylib"
+
+  # Virtual environments
+  - ".env/**"
+  - ".venv/**"
+  - "env/**"
+  - "venv/**"
+  - "ENV/**"
+  - "env.bak/**"
+  - "venv.bak/**"
+
+  # IDE and editor files
+  - ".vscode/**"
+  - ".idea/**"
+  - "*.swp"
+  - "*.swo"
+  - "*~"
+  - ".DS_Store"
+
+  # Build and distribution
+  - "dist/**"
+  - "build/**"
+  - "*.egg-info/**"
+  - ".eggs/**"
+  - "*.egg"
+  - "wheels/**"
+
+  # Documentation
+  - "docs/**"
+  - "*.md"
+  - "*.rst"
+
+  # Configuration files
+  - "*.toml"
+  - "*.cfg"
+  - "*.ini"
+  - "*.yaml"
+  - "*.yml"
+
+  # Security and secrets
+  - ".secrets*"
+  - ".age"
+  - ".sops.*"
+  - "*.key"
+  - "*.pem"
+
+  # Dependency files
+  - "poetry.lock"
+  - "requirements*.txt"
+  - "Pipfile.lock"
+
+  # Git and CI
+  - ".git/**"
+  - ".github/**"
+  - ".gitignore"
+  - ".gitattributes"
+
+  # Logs and temporary files
+  - "logs/**"
+  - "*.log"
+  - ".pytest_cache/**"
+  - ".mypy_cache/**"
+  - ".ruff_cache/**"
+  - "htmlcov/**"
+  - ".coverage*"
+  - "coverage.xml"
+
+  # Temporary cleanup directory
+  - "tmp_cleanup/**"
+
+# Pull request comment configuration
+comment:
+  # testcase = Test Analytics panel; components = per-component coverage breakdown
+  layout: "reach, diff, flags, components, files, testcase"
+  behavior: default
+  require_changes: true
+  require_base: true
+  require_head: true
+  # Show carryforward flag data in PR comments (hidden by default when carryforward: true)
+  show_carryforward_flags: true
+
+github_checks:
+  # Annotations conflict with flags/components and cannot be cleared once posted
+  # (GitHub API limitation). Use PR comments + Codecov UI for line-level investigation.
+  # See: https://docs.codecov.com/docs/github-checks
+  annotations: false

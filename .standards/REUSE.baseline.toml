@@ -1,0 +1,152 @@
+# REUSE Baseline Configuration
+# Source: ByronWilliamsCPA/cookiecutter-python-template
+# Version: 0.1.0
+# Updated: 2026-06-01
+#
+# This file contains baseline REUSE/SPDX annotations that cruft updates automatically.
+# Merge changes into root `REUSE.toml` using: `/merge-standards` or ask Claude.
+#
+# IMPORTANT: This is a REFERENCE file. The actual REUSE.toml at root level is what
+# tools use. Add project-specific paths to root REUSE.toml, not here.
+
+version = 1
+SPDX-PackageName = "mtg_ai"
+SPDX-PackageSupplier = "Byron Williams"
+SPDX-PackageDownloadLocation = "https://github.com/ByronWilliamsCPA/MTG_AI"
+
+# ============================================================================
+# BASELINE ANNOTATIONS - Standard paths from template
+# ============================================================================
+
+# Source code (Python, tools, tests) - Project License
+[[annotations]]
+path = [
+    "src/**",
+    "tools/**",
+    "tests/**",
+    "validation/**",
+    "fuzz/**",
+    "benchmarks/**/*.py",
+    "scripts/**/*.py",
+    "modal/**/*.py",
+    "*.py",
+    "noxfile.py",
+]
+SPDX-License-Identifier = "MIT"
+SPDX-FileCopyrightText = "2026 Byron Williams"
+
+# Documentation - CC-BY-4.0
+[[annotations]]
+path = [
+    "docs/**",
+    "*.md",
+    "tmp_cleanup/**/*.md",
+    "benchmarks/*.md",
+    "!LICENSES/*.txt",
+]
+SPDX-License-Identifier = "CC-BY-4.0"
+SPDX-FileCopyrightText = "2026 Byron Williams"
+
+# Configuration files - CC0-1.0 (public domain dedication)
+[[annotations]]
+path = [
+    "*.toml",
+    "*.yml",
+    "*.yaml",
+    ".github/**",
+    ".gitignore",
+    ".gitattributes",
+    ".pre-commit-config.yaml",
+    ".readthedocs.yaml",
+    "mkdocs.yml",
+    "poetry.lock",
+    "uv.lock",
+    "requirements/**/*.txt",
+    "benchmarks/labelmaps/**/*.yaml",
+    ".zenodo.json",
+]
+SPDX-License-Identifier = "CC0-1.0"
+SPDX-FileCopyrightText = "2026 Byron Williams"
+
+# Data files and models - ODbL-1.0 (Open Database License)
+[[annotations]]
+path = [
+    "data/**",
+    "models/**",
+]
+SPDX-License-Identifier = "ODbL-1.0"
+SPDX-FileCopyrightText = "2026 Byron Williams"
+
+# Build artifacts and generated files - excluded from licensing
+[[annotations]]
+path = [
+    "build/**",
+    "dist/**",
+    "site/**",
+    "*.egg-info/**",
+    "__pycache__/**",
+    ".venv/**",
+    "venv/**",
+    ".nox/**",
+    ".mypy_cache/**",
+    ".pytest_cache/**",
+    ".ruff_cache/**",
+    "*.pyc",
+    "*.pyo",
+]
+precedence = "override"
+SPDX-License-Identifier = "CC0-1.0"
+SPDX-FileCopyrightText = "2026 Byron Williams"
+
+# IDE and tooling configuration - CC0-1.0
+[[annotations]]
+path = [
+    ".claude/**",
+    ".standards/**",
+    ".clusterfuzzlite/**",
+    ".sonarlint/**",
+    ".qlty/**",
+    ".coderabbit.yaml",
+    ".vscode/**",
+    ".idea/**",
+    "renovate.json",
+    "sonar-project.properties",
+    "codemeta.json",
+    "Makefile",
+    "justfile",
+    "Taskfile.yml",
+]
+SPDX-License-Identifier = "CC0-1.0"
+SPDX-FileCopyrightText = "2026 Byron Williams"
+
+# Temporary and generated files - CC0-1.0
+[[annotations]]
+path = [
+    "tmp_cleanup/**",
+    "scripts/**/*.sh",
+    "benchmarks/reports/**",
+    "notebooks/**/*.ipynb",
+]
+SPDX-License-Identifier = "CC0-1.0"
+SPDX-FileCopyrightText = "2026 Byron Williams"
+
+# ============================================================================
+# PROJECT-SPECIFIC ANNOTATIONS
+# ============================================================================
+# Add project-specific paths in the root REUSE.toml file, not here.
+# Examples of paths you might add:
+#
+# # Custom API clients
+# [[annotations]]
+# path = ["src/myproject/clients/**"]
+# SPDX-License-Identifier = "MIT"
+# SPDX-FileCopyrightText = "2025 Your Name"
+#
+# # Third-party vendored code
+# [[annotations]]
+# path = ["vendor/**"]
+# SPDX-License-Identifier = "Apache-2.0"
+# SPDX-FileCopyrightText = "2023 Original Author"
+
+# ============================================================================
+# This baseline is automatically updated by cruft. Merge changes into root REUSE.toml.

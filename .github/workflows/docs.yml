@@ -1,0 +1,65 @@
+# Documentation Workflow
+# Builds and deploys MkDocs documentation to GitHub Pages.
+#
+# Features:
+#   - MkDocs Material theme build
+#   - GitHub Pages deployment on push to main
+#   - PR preview builds
+name: Documentation
+
+on:
+  push:
+    branches: [main, master]
+    paths:
+      - 'docs/**'
+      - 'mkdocs.yml'
+      - '.github/workflows/docs.yml'
+  pull_request:
+    paths:
+      - 'docs/**'
+      - 'mkdocs.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write  # For GitHub Pages deployment
+  pages: write
+  id-token: write
+
+# Standalone documentation workflow
+jobs:
+  docs:
+    name: Build & Deploy Docs
+    runs-on: ubuntu-latest
+    # `mkdocs gh-deploy --force` pushes directly to the gh-pages branch and
+    # only needs `contents: write`. Pages API / OIDC scopes are not exercised
+    # here (those would be required only if switching to actions/deploy-pages).
+    permissions:
+      contents: write
+    steps:
+      - name: Harden the runner
+        uses: step-security/harden-runner@9af89fc71515a100421586dfdb3dc9c984fbf411 # v2.19.4
+        with:
+          egress-policy: audit
+
+      - name: Checkout repository
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          fetch-depth: 0
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b # v8.1.0
+        with:
+          enable-cache: true
+
+      - name: Set up Python
+        run: uv python install 3.12
+
+      - name: Install dependencies
+        run: uv sync --all-extras
+
+      - name: Build documentation
+        run: uv run mkdocs build --strict
+
+      - name: Deploy to GitHub Pages
+        if: ${{ github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master') }}
+        run: uv run mkdocs gh-deploy --force

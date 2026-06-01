@@ -1,0 +1,12 @@
+
+# Mutation Testing - NOT CONFIGURED
+#
+# To enable mutation testing, set include_mutation_testing to "yes"
+# in cookiecutter.json when generating the project.
+#
+# Mutation testing helps verify test quality by:
+# 1. Making small changes (mutations) to your code
+# 2. Running tests to see if they catch the mutation
+# 3. Reporting a "mutation score" (% of mutations caught)
+#
+# A high mutation score indicates your tests effectively catch bugs.

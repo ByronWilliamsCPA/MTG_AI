@@ -1,0 +1,42 @@
+version: 2
+updates:
+  # Python dependency management
+  - package-ecosystem: "pip"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "03:00"
+    open-pull-requests-limit: 5
+    reviewers:
+      - "ByronWilliamsCPA"
+    assignees:
+      - "ByronWilliamsCPA"
+    commit-message:
+      prefix: "chore(deps):"
+      prefix-development: "chore(deps-dev):"
+      include: "scope"
+    pull-request-branch-name:
+      separator: "/"
+    ignore:
+      # Add packages to ignore if needed
+      # - dependency-name: "numpy"
+      #   versions: ["0.x"]
+    allow:
+      - dependency-type: "all"
+
+  # GitHub Actions
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "04:00"
+    open-pull-requests-limit: 5
+    reviewers:
+      - "ByronWilliamsCPA"
+    assignees:
+      - "ByronWilliamsCPA"
+    commit-message:
+      prefix: "ci(actions):"
+      include: "scope"

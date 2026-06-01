@@ -1,0 +1,78 @@
+# OSV-Scanner Vulnerability Exceptions
+# OpenSSF Scorecard uses OSV-Scanner to detect vulnerabilities
+# This file documents false positives and vulnerabilities that don't affect this project
+#
+# Reference: https://google.github.io/osv-scanner/configuration/
+# Format: [[IgnoredVulns]] with id and reason fields
+#
+# When to add exceptions:
+# 1. Withdrawn vulnerabilities that are no longer valid
+# 2. Vulnerabilities in old versions (current version is much newer and fixed)
+# 3. Vulnerabilities that don't affect this project's codebase
+# 4. False positives from vulnerability scanning tools
+#
+# IMPORTANT: Only add exceptions after careful analysis. Never ignore real vulnerabilities.
+# Each exception MUST include:
+# - id: CVE or advisory ID
+# - reason: Detailed explanation of why this is safe to ignore
+
+# ============================================================================
+# Example: Withdrawn Vulnerability
+# ============================================================================
+# Uncomment and customize for your project:
+#
+# [[IgnoredVulns]]
+# id = "CVE-XXXX-XXXXX"
+# reason = "This CVE was withdrawn on YYYY-MM-DD due to [reason]. Not applicable to this project."
+
+# ============================================================================
+# Example: Fixed in Current Version
+# ============================================================================
+# Uncomment and customize for your project:
+#
+# [[IgnoredVulns]]
+# id = "PYSEC-YYYY-NNN"
+# reason = "Fixed in package-name >= X.Y.Z (released YYYY-MM-DD). Current version: X.Y.Z. Vulnerability does not apply."
+
+# ============================================================================
+# Example: Not Used in Project
+# ============================================================================
+# Uncomment and customize for your project:
+#
+# [[IgnoredVulns]]
+# id = "GHSA-xxxx-xxxx-xxxx"
+# reason = "Vulnerability affects [specific feature] which is not used in this project. Safe to ignore."
+
+# ============================================================================
+# Project-Specific Exceptions
+# ============================================================================
+# Add your project's vulnerability exceptions below this line
+
+# ----------------------------------------------------------------------------
+# interrogate/py dependency - CVE-2022-42969 (DISPUTED)
+# ----------------------------------------------------------------------------
+[[IgnoredVulns]]
+id = "CVE-2022-42969"
+reason = """
+DISPUTED ReDoS vulnerability in py package (transitive dependency of interrogate).
+Only affects Subversion repository path parsing, which this project does not use.
+interrogate is a dev dependency for docstring coverage checking.
+The py package is unmaintained but poses no security risk in this context.
+See: https://nvd.nist.gov/vuln/detail/CVE-2022-42969
+"""
+
+[[IgnoredVulns]]
+id = "PYSEC-2022-42969"
+reason = """
+Same as CVE-2022-42969 - DISPUTED ReDoS in py package via interrogate.
+Dev dependency only, affects SVN parsing which is not used.
+"""
+
+[[IgnoredVulns]]
+id = "GHSA-w596-4wvx-j9j6"
+reason = """
+GitHub Security Advisory for py ReDoS (same as CVE-2022-42969).
+DISPUTED vulnerability affecting SVN path parsing.
+interrogate (dev dependency) transitively requires py, but this project
+does not interact with Subversion repositories.
+"""

@@ -1,0 +1,33 @@
+---
+# yamllint configuration for MTG AI
+extends: default
+
+rules:
+  line-length:
+    max: 150
+    level: warning
+    allow-non-breakable-inline-mappings: true
+
+  # Disallow duplicate keys (forbid-duplicated-merge-keys removed - not supported in all yamllint versions)
+  key-duplicates: enable
+
+  # Allow flow sequences with no spaces (GitHub Actions style)
+  brackets:
+    max-spaces-inside: 0
+    min-spaces-inside: 0
+
+  # More lenient indentation for readability
+  indentation:
+    spaces: 2
+    indent-sequences: true
+
+  # Allow comments without space after #
+  comments:
+    require-starting-space: true
+    min-spaces-from-content: 1
+
+  # Allow longer lines in comments
+  comments-indentation: {}
+
+  # Disable document start requirement (---)
+  document-start: disable
