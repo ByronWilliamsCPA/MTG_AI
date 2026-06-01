@@ -24,6 +24,13 @@
   ],
   "packageRules": [
     {
+      "description": "Track org reusable workflow versions via followTag",
+      "matchPackagePatterns": ["ByronWilliamsCPA/.github", "williaby/.github"],
+      "followTag": "v1",
+      "automerge": false,
+      "labels": ["dependencies", "github-actions"]
+    },
+    {
       "description": "Group Python dependencies by type",
       "matchManagers": ["pep621"],
       "matchDepTypes": ["dependencies"],

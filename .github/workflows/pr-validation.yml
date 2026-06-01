@@ -28,7 +28,7 @@ jobs:
   # ==========================================================================
   core-validation:
     name: Core Validation
-    uses: ByronWilliamsCPA/.github/.github/workflows/python-pr-validation.yml@main
+    uses: ByronWilliamsCPA/.github/.github/workflows/python-pr-validation.yml@40ff5b5615e786ee0867e1b9e8f21a4735036e63  # main
     with:
       python-version: '3.12'
       source-directory: 'src'
@@ -50,6 +50,7 @@ jobs:
   dead-code:
     name: Dead Code Check
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - name: Harden the runner
         uses: step-security/harden-runner@9af89fc71515a100421586dfdb3dc9c984fbf411 # v2.19.4
@@ -91,6 +92,7 @@ jobs:
   changelog:
     name: Changelog Check
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     # Skip via event payload to avoid GitHub API label-timing races on the
     # opened event (e.g. Renovate PRs). Avoids out-of-step false positives
     # when main advances after the PR was opened.
@@ -131,6 +133,7 @@ jobs:
   link-check:
     name: Documentation Links
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - name: Harden the runner
         uses: step-security/harden-runner@9af89fc71515a100421586dfdb3dc9c984fbf411 # v2.19.4
@@ -165,6 +168,7 @@ jobs:
   validate-dependencies:
     name: Dependency & Standards Validation
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     needs: [core-validation, dead-code, changelog, link-check]
     if: always()
     steps:

@@ -1,0 +1,120 @@
+version = 1
+SPDX-PackageName = "mtg_ai"
+SPDX-PackageSupplier = "Byron Williams <byronawilliams@gmail.com>"
+SPDX-PackageDownloadLocation = "https://github.com/ByronWilliamsCPA/MTG_AI"
+
+# ============================================================================
+# BASELINE ANNOTATIONS - Standard paths from template
+# ============================================================================
+
+# Source code (Python, tools, tests) - Project License
+[[annotations]]
+path = [
+    "src/**",
+    "tools/**",
+    "tests/**",
+    "validation/**",
+    "fuzz/**",
+    "benchmarks/**/*.py",
+    "scripts/**/*.py",
+    "modal/**/*.py",
+    "*.py",
+    "noxfile.py",
+]
+SPDX-License-Identifier = "MIT"
+SPDX-FileCopyrightText = "2026 Byron Williams <byronawilliams@gmail.com>"
+
+# Documentation - CC-BY-4.0
+[[annotations]]
+path = [
+    "docs/**",
+    "*.md",
+    "tmp_cleanup/**/*.md",
+    "benchmarks/*.md",
+    "!LICENSES/*.txt",
+]
+SPDX-License-Identifier = "CC-BY-4.0"
+SPDX-FileCopyrightText = "2026 Byron Williams <byronawilliams@gmail.com>"
+
+# Configuration files - CC0-1.0 (public domain dedication)
+[[annotations]]
+path = [
+    "*.toml",
+    "*.yml",
+    "*.yaml",
+    ".github/**",
+    ".gitignore",
+    ".gitattributes",
+    ".pre-commit-config.yaml",
+    ".readthedocs.yaml",
+    "mkdocs.yml",
+    "poetry.lock",
+    "uv.lock",
+    "requirements/**/*.txt",
+    "benchmarks/labelmaps/**/*.yaml",
+    ".zenodo.json",
+]
+SPDX-License-Identifier = "CC0-1.0"
+SPDX-FileCopyrightText = "2026 Byron Williams <byronawilliams@gmail.com>"
+
+# Data files and models - ODbL-1.0 (Open Database License)
+[[annotations]]
+path = [
+    "data/**",
+    "models/**",
+]
+SPDX-License-Identifier = "ODbL-1.0"
+SPDX-FileCopyrightText = "2026 Byron Williams <byronawilliams@gmail.com>"
+
+# Build artifacts and generated files - excluded from licensing
+[[annotations]]
+path = [
+    "build/**",
+    "dist/**",
+    "site/**",
+    "*.egg-info/**",
+    "__pycache__/**",
+    ".venv/**",
+    "venv/**",
+    ".nox/**",
+    ".mypy_cache/**",
+    ".pytest_cache/**",
+    ".ruff_cache/**",
+    "*.pyc",
+    "*.pyo",
+]
+precedence = "override"
+SPDX-License-Identifier = "CC0-1.0"
+SPDX-FileCopyrightText = "2026 Byron Williams <byronawilliams@gmail.com>"
+
+# IDE and tooling configuration - CC0-1.0
+[[annotations]]
+path = [
+    ".claude/**",
+    ".standards/**",
+    ".clusterfuzzlite/**",
+    ".sonarlint/**",
+    ".qlty/**",
+    ".coderabbit.yaml",
+    ".vscode/**",
+    ".idea/**",
+    "renovate.json",
+    "sonar-project.properties",
+    "codemeta.json",
+    "Makefile",
+    "justfile",
+    "Taskfile.yml",
+]
+SPDX-License-Identifier = "CC0-1.0"
+SPDX-FileCopyrightText = "2026 Byron Williams <byronawilliams@gmail.com>"
+
+# Temporary and generated files - CC0-1.0
+[[annotations]]
+path = [
+    "tmp_cleanup/**",
+    "scripts/**/*.sh",
+    "benchmarks/reports/**",
+    "notebooks/**/*.ipynb",
+]
+SPDX-License-Identifier = "CC0-1.0"
+SPDX-FileCopyrightText = "2026 Byron Williams <byronawilliams@gmail.com>"

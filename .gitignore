@@ -282,3 +282,9 @@ output/
 tmp_cleanup/.tmp-*
 !tmp_cleanup/.gitkeep
 
+# Git worktrees
+.worktrees/
+
+# Compliance reports
+docs/compliance-reports/
+

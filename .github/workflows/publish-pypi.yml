@@ -17,7 +17,7 @@ on:
 jobs:
   publish:
     name: Publish Package
-    uses: ByronWilliamsCPA/.github/.github/workflows/python-publish-pypi.yml@main
+    uses: ByronWilliamsCPA/.github/.github/workflows/python-publish-pypi.yml@40ff5b5615e786ee0867e1b9e8f21a4735036e63  # main
     with:
       python-version: '3.12'
       package-name: 'mtg-ai'

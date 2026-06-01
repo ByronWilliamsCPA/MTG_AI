@@ -56,17 +56,17 @@ repos:
   # ============================================================================
   # Advanced secret detection beyond detect-private-key
   # Detects API keys, tokens, credentials, and other secrets
-  # Uses local system-installed trufflehog to avoid Go build issues
+  # Uses local system-installed trufflehog (fail-closed: aborts if tool absent)
   # Install: brew install trufflehog (macOS) or see https://github.com/trufflesecurity/trufflehog#installation
   - repo: local
     hooks:
       - id: trufflehog
-        name: TruffleHog Secret Scanner
-        description: Detect secrets in your data before committing
-        entry: bash -c 'command -v trufflehog >/dev/null 2>&1 && trufflehog git file://. --since-commit HEAD --results=verified,unknown --fail || echo "TruffleHog not installed - skipping secret scan"'
+        name: TruffleHog secret scan
         language: system
+        entry: trufflehog git file://. --since-commit HEAD --results=verified,unknown --fail
         pass_filenames: false
         stages: [pre-commit]
+        exclude: CHANGELOG\.md
 
   # ============================================================================
   # Security Scanning - Bandit
@@ -106,6 +106,15 @@ repos:
         args: [feat, fix, docs, style, refactor, perf, test, build, ci, chore, revert]
 
   # ============================================================================
+  # Commitizen Commit Message Validation
+  # ============================================================================
+  - repo: https://github.com/commitizen-tools/commitizen
+    rev: "2a4ac6555711923a159f74cd3a324c785ac8f145"  # v4.16.3  # pragma: allowlist secret
+    hooks:
+      - id: commitizen
+        stages: [commit-msg]
+
+  # ============================================================================
   # pyproject.toml Validation
   # ============================================================================
   - repo: https://github.com/abravalheri/validate-pyproject
@@ -134,6 +143,14 @@ repos:
         args: [--fix, --exit-non-zero-on-fix]
       - id: ruff-format
         stages: [pre-commit]
+
+  # ============================================================================
+  # BasedPyright Type Checking
+  # ============================================================================
+  - repo: https://github.com/DetachHead/basedpyright
+    rev: "ad82d91ce241116737e65e660c5420dd0366f405"  # v1.39.6  # pragma: allowlist secret
+    hooks:
+      - id: basedpyright
 
   # ============================================================================
   # Qlty Unified Quality Checks (Pre-Push)
@@ -199,7 +216,14 @@ repos:
     rev: 4894019dc8876092bc9b6d56878798c550fad998  # 1.7.0
     hooks:
       - id: interrogate
-        args: ['-v', '-c', 'pyproject.toml', 'src/']
+        alias: interrogate-src
+        args: ['-v', '-c', 'pyproject.toml', '--fail-under', '80', 'src/']
+        language_version: python3.12
+        pass_filenames: false
+        stages: [pre-commit]
+      - id: interrogate
+        alias: interrogate-scripts
+        args: ['-v', '-c', 'pyproject.toml', '--fail-under', '85', 'scripts/']
         language_version: python3.12
         pass_filenames: false
         stages: [pre-commit]
@@ -217,6 +241,34 @@ repos:
         types: [python]
         stages: [pre-commit]
         exclude: ^(tests|scripts|benchmarks|tools)/
+
+  # ============================================================================
+  # Secret Baseline Regression (detect-secrets)
+  # ============================================================================
+  - repo: https://github.com/Yelp/detect-secrets
+    rev: "68e8b45440415753fff70a312ece8da92ba85b4a"  # v1.5.0  # pragma: allowlist secret
+    hooks:
+      - id: detect-secrets
+        args: ['--baseline', '.secrets.baseline']
+        exclude: package-lock\.json
+        stages: [pre-commit]
+
+  # ============================================================================
+  # Em-dash Detection
+  # ============================================================================
+  - repo: local
+    hooks:
+      - id: no-em-dash
+        name: No em-dashes in source files
+        language: pygrep
+        entry: "—"
+        types: [text]
+        exclude: >-
+          (?x)^(
+            \.git/|
+            \.venv/|
+            node_modules/
+          )
 
 # Exclude patterns
 exclude: |

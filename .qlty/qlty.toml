@@ -4,6 +4,18 @@
 
 config_version = "0"
 
+[plugins]
+enabled = ["ruff", "basedpyright", "bandit"]
+
+[plugin.ruff]
+# Ruff configuration is inherited from pyproject.toml [tool.ruff] section
+
+[plugin.basedpyright]
+# BasedPyright configuration is inherited from pyproject.toml [tool.basedpyright] section
+
+[plugin.bandit]
+# Bandit configuration is inherited from pyproject.toml [tool.bandit] section
+
 # File patterns to completely exclude from all analysis
 exclude_patterns = [
     "*.log",
