@@ -7,7 +7,7 @@ project are documented in `CLAUDE.md` under the "Response-Aware Development (RAD
 section.
 
 The canonical tagging syntax and full examples for this project are in
-[`CLAUDE.md`](../CLAUDE.md) under the "Response-Aware Development (RAD)" section.
+`CLAUDE.md` under the "Response-Aware Development (RAD)" section.
 
 ## Quick Reference
 
