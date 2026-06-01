@@ -10,6 +10,7 @@ FROM python:3.12-slim AS builder
 WORKDIR /app
 
 # Install system dependencies for building Python packages
+# hadolint ignore=DL3008
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
     curl \
@@ -52,6 +53,7 @@ LABEL org.opencontainers.image.source="https://github.com/ByronWilliamsCPA/MTG_A
 LABEL org.opencontainers.image.licenses="MIT"
 
 # Install runtime dependencies only
+# hadolint ignore=DL3008
 RUN apt-get update && apt-get install -y --no-install-recommends \
     ca-certificates \
     curl \

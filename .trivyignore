@@ -1,0 +1,26 @@
+# Trivy CVE Ignore List
+#
+# All entries in this file have no fixed version available in the Debian
+# package repository as of 2026-06-01. Each CVE is also documented in
+# docs/known-vulnerabilities.md with impact assessment and reassessment dates.
+# Review this file whenever docs/known-vulnerabilities.md entries are reassessed.
+#
+# Format: <CVE-ID>  # <package> | <severity> | <reason>
+
+# curl / libcurl4t64 : no Debian fix available as of 2026-06-01
+CVE-2026-5773  # curl, libcurl4t64 | HIGH | wrong SMB file transfer; no fixed Debian pkg
+CVE-2026-6276  # libcurl4t64 | HIGH | cookie leak in redirects; no fixed Debian pkg
+
+# ncurses : no Debian fix available as of 2026-06-01
+CVE-2025-69720  # libncursesw6, libtinfo6 | HIGH | buffer overflow; no fixed Debian pkg
+
+# libssh2 : no Debian fix available as of 2026-06-01
+CVE-2026-7598  # libssh2-1t64 | HIGH | integer overflow; no fixed Debian pkg
+
+# perl-base : no Debian fix available as of 2026-06-01
+# perl is a transitive system dependency of python:3.12-slim; cannot be removed
+CVE-2026-42496  # perl-base | CRITICAL | Archive::Tar symlink extraction; no fixed Debian pkg
+CVE-2026-42497  # perl-base | HIGH | Archive::Tar hardlink extraction; no fixed Debian pkg
+CVE-2026-8376   # perl-base | HIGH | heap buffer overflow; no fixed Debian pkg
+CVE-2026-48962  # perl-base | HIGH | arbitrary code execution; no fixed Debian pkg
+CVE-2026-9538   # perl-base | HIGH | memory issue in Archive::Tar; no fixed Debian pkg
