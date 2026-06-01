@@ -58,6 +58,12 @@ Review code changes for quality, maintainability, and adherence to project stand
 - [ ] SQL injection prevented
 - [ ] XSS prevention in place
 
+## Constraints
+
+- timeout: 120 seconds per tool call
+- max_turns: 20
+- resource_limit: standard
+
 ## Invocation
 
 ```

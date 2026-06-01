@@ -33,6 +33,7 @@ jobs:
   security:
     name: Security Scan
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     # Standalone scan runs Bandit + OSV-Scanner and uploads JSON artifacts;
     # no SARIF upload and no PR comments in this path, so write scopes for
     # security-events and pull-requests are not needed.
@@ -59,7 +60,7 @@ jobs:
         run: uv sync --all-extras
 
       - name: Run Bandit security scan
-        run: uv run bandit -r src/ -c pyproject.toml -f json -o bandit-report.json || true
+        run: uv run bandit -r src/ -c pyproject.toml -f json -o bandit-report.json
 
       - name: Run OSV-Scanner dependency scan
         uses: google/osv-scanner-action/osv-scanner-action@9a498708959aeaef5ef730655706c5a1df1edbc2 # v2.3.8
@@ -69,7 +70,6 @@ jobs:
             --format=json
             --recursive
             ./
-        continue-on-error: true
 
       - name: Upload security reports
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
@@ -81,8 +81,9 @@ jobs:
           retention-days: 30
 
   security-gate-success:
-    name: Security Gate Validation
+    name: Security Analysis / Security Gate Validation
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     needs: [security]
     if: always()
     permissions:

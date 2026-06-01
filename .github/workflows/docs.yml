@@ -30,6 +30,7 @@ jobs:
   docs:
     name: Build & Deploy Docs
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     # `mkdocs gh-deploy --force` pushes directly to the gh-pages branch and
     # only needs `contents: write`. Pages API / OIDC scopes are not exercised
     # here (those would be required only if switching to actions/deploy-pages).

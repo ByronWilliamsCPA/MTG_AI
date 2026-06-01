@@ -87,6 +87,14 @@ RUN npm ci
 # Copy source code
 COPY . .
 
+# Create non-root user and set ownership
+RUN addgroup -g 1001 -S appgroup && \
+    adduser -u 1001 -S appuser -G appgroup && \
+    chown -R appuser:appgroup /app
+
+# Run as non-root user
+USER appuser
+
 # Expose Vite dev server port
 EXPOSE 3000
 

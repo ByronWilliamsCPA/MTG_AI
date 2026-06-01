@@ -148,7 +148,7 @@ services:
 # Volumes (Persistent Storage)
 # =============================================================================
 volumes:
-postgres-data:
+  postgres-data:
     driver: local
 # redis-data:
   #   driver: local

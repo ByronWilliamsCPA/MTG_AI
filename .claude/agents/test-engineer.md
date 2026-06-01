@@ -72,6 +72,12 @@ uv run pytest -m "integration"
 uv run mutmut run
 ```
 
+## Constraints
+
+- timeout: 120 seconds per tool call
+- max_turns: 20
+- resource_limit: standard
+
 ## Invocation
 
 ```

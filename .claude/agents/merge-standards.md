@@ -117,6 +117,12 @@ Agent:
 5. Apply after user confirmation
 ```
 
+## Constraints
+
+- timeout: 120 seconds per tool call
+- max_turns: 20
+- resource_limit: standard
+
 ## Safety Rules
 
 - **NEVER remove** project-specific customizations

@@ -52,6 +52,7 @@ jobs:
   fips-check:
     name: FIPS Compliance Check
     runs-on: ubuntu-latest
+    timeout-minutes: 20
 
     permissions:
       contents: read
@@ -204,6 +205,7 @@ jobs:
   fips-runtime-test:
     name: FIPS Runtime Test
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     if: github.event_name == 'schedule' || github.event.inputs.strict_mode == 'true'
     needs: fips-check
 

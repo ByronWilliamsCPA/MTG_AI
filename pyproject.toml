@@ -558,8 +558,11 @@ color = true
 [tool.pydoclint]
 style = "google"
 exclude = '\.git|tests/|scripts/|benchmarks/|tools/|noxfile\.py|\.claude/'
-arg-type-hints-in-docstring = true
+# Function annotations are the source of truth for types; no need to repeat them in docstrings.
+arg-type-hints-in-docstring = false
 arg-type-hints-in-signature = true
+# Combine __init__ docstrings with the class docstring instead of requiring a separate __init__ docstring.
+should-document-magic-methods = false
 skip-checking-raises = false
 require-return-section-when-returning-nothing = false
 

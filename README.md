@@ -99,14 +99,21 @@ uv run pre-commit install
 
 ### Basic Usage
 
-```python
-# Import and use the package
-from mtg_ai import YourModule
+```bash
+# Show available commands and options
+uv run mtg_ai --help
 
-# Example: Create an instance and use it
-module = YourModule()
-result = module.process()
-print(result)
+# Greet with the default name
+uv run mtg_ai hello
+
+# Greet with a specific name
+uv run mtg_ai hello --name "Byron"
+
+# Display current configuration settings
+uv run mtg_ai config
+
+# Enable debug logging for any command
+uv run mtg_ai --debug hello --name "Byron"
 ```
 
 ### CLI Usage

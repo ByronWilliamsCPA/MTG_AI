@@ -13,6 +13,7 @@ on:
   pull_request:
     types: [opened, synchronize, reopened]
     branches: [main, master, develop]
+  merge_group:
   workflow_dispatch:
 
 # Cancel in-progress runs for same PR/branch
@@ -30,6 +31,7 @@ jobs:
   test:
     name: Test (Python 3.12)
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     permissions:
       contents: read
     steps:
@@ -89,9 +91,10 @@ jobs:
           report_type: test_results
           fail_ci_if_error: false
 
-frontend:
+  frontend:
     name: Frontend (Node 22)
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     defaults:
       run:
         working-directory: ./frontend
@@ -136,9 +139,11 @@ frontend:
           fail_ci_if_error: false
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
-ci-gate:
+
+  ci-gate:
     name: CI Gate
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     needs: [test, frontend]
     if: always()
     permissions:

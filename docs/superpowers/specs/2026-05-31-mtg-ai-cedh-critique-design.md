@@ -97,7 +97,7 @@ reasoning, behind a swappable `Generator` interface.
 
 Each package has one job, a typed interface, and is testable in isolation.
 
-**Shared schema package (`mtg_ai_schema/`)** — a small library both services
+**Shared schema package (`mtg_ai_schema/`)**: a small library both services
 depend on: SQLAlchemy models + Alembic migrations for the shared tables. The
 Data Service owns and runs migrations; the App Service imports the models
 read-only. One source of truth for table shapes.

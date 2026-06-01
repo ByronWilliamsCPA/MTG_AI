@@ -11,11 +11,11 @@
 Do not open a public GitHub issue for security vulnerabilities.
 
 Use GitHub Security Advisories to report privately:
-<https://github.com/ByronWilliamsCPA/MTG_AI/security/advisories/new>
-
-Or email: security@example.com
+[Submit a private security advisory](https://github.com/ByronWilliamsCPA/MTG_AI/security/advisories/new)
 
 ## Response Timeline
+
+We commit to providing an initial response to all vulnerability reports within 14 days of submission.
 
 - Acknowledgement: within 48 hours
 - Initial assessment: within 5 business days
@@ -23,4 +23,4 @@ Or email: security@example.com
 
 ## Organization Policy
 
-See also: <https://github.com/ByronWilliamsCPA/.github/blob/main/SECURITY.md>
+See also: [ByronWilliamsCPA organization security policy](https://github.com/ByronWilliamsCPA/.github/blob/main/SECURITY.md)

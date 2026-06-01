@@ -3,7 +3,7 @@
 # Documentation: https://www.mkdocs.org/user-guide/configuration/
 
 site_name: MTG AI
-site_description: Self-hosted competitive Commander (cEDH) deck-critique assistant: RAG over Scryfall/MTGJSON/meta data with a deterministic rules engine and a swappable generation backend.
+site_description: "Self-hosted competitive Commander (cEDH) deck-critique assistant: RAG over Scryfall/MTGJSON/meta data with a deterministic rules engine and a swappable generation backend."
 site_author: Byron Williams
 site_url: https://MTG_AI.readthedocs.io
 repo_url: https://github.com/ByronWilliamsCPA/MTG_AI

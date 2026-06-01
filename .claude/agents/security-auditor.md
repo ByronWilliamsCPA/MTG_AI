@@ -89,6 +89,12 @@ gitleaks detect --source .
 9. **A09: Logging Failures**
 10. **A10: Server-Side Request Forgery**
 
+## Constraints
+
+- timeout: 120 seconds per tool call
+- max_turns: 20
+- resource_limit: standard
+
 ## Invocation
 
 ```
