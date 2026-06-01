@@ -41,8 +41,10 @@ class ReadinessCheck(BaseModel):
 
     name: str = Field(..., description="Dependency name")
     status: bool = Field(..., description="Check passed")
-    latency_ms: float | None = Field(None, description="Check latency in milliseconds")
-    error: str | None = Field(None, description="Error message if failed")
+    latency_ms: float | None = Field(
+        default=None, description="Check latency in milliseconds"
+    )
+    error: str | None = Field(default=None, description="Error message if failed")
 
 
 class ReadinessStatus(HealthStatus):
@@ -78,12 +80,14 @@ async def check_database() -> ReadinessCheck:
     """Check database connectivity.
 
     Returns:
-        ReadinessCheck with database status and latency
+        ReadinessCheck: With database status and latency.
     """
     start = time.time()
     try:
-        # Import here to avoid circular dependencies
-        from mtg_ai.core.database import get_session
+        # Import at function scope; module added in Phase 1 (database integration).
+        from mtg_ai.core.database import (  # pyright: ignore[reportMissingImports]
+            get_session,
+        )
 
         async with get_session() as session:
             # Simple query to check connectivity
@@ -109,7 +113,7 @@ async def check_cache() -> ReadinessCheck:
     """Check Redis/cache connectivity.
 
     Returns:
-        ReadinessCheck with cache status and latency
+        ReadinessCheck: With cache status and latency.
     """
     start = time.time()
     try:
@@ -138,7 +142,7 @@ async def check_external_service() -> ReadinessCheck:
     """Check external API/service connectivity.
 
     Returns:
-        ReadinessCheck with external service status
+        ReadinessCheck: With external service status.
     """
     start = time.time()
     try:

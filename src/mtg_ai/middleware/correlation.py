@@ -52,7 +52,7 @@ from typing import TYPE_CHECKING
 from starlette.middleware.base import BaseHTTPMiddleware
 
 if TYPE_CHECKING:
-    from collections.abc import Callable
+    from collections.abc import Awaitable, Callable
 
     from fastapi import Request
     from starlette.responses import Response
@@ -75,7 +75,7 @@ def get_correlation_id() -> str | None:
     """Get the current request's correlation ID.
 
     Returns:
-        Correlation ID string or None if not in a request context.
+        str | None: Correlation ID string, or None if not in a request context.
 
     Example:
         >>> from mtg_ai.middleware.correlation import get_correlation_id
@@ -89,7 +89,7 @@ def get_request_id() -> str | None:
     """Get the current request's unique request ID.
 
     Returns:
-        Request ID string or None if not in a request context.
+        str | None: Request ID string, or None if not in a request context.
     """
     return _request_id_ctx.get()
 
@@ -98,7 +98,7 @@ def get_trace_id() -> str | None:
     """Get the current request's trace ID for distributed tracing.
 
     Returns:
-        Trace ID string or None if not in a request context.
+        str | None: Trace ID string, or None if not in a request context.
     """
     return _trace_id_ctx.get()
 
@@ -107,7 +107,7 @@ def get_span_id() -> str | None:
     """Get the current request's span ID.
 
     Returns:
-        Span ID string or None if not in a request context.
+        str | None: Span ID string, or None if not in a request context.
     """
     return _span_id_ctx.get()
 
@@ -127,7 +127,7 @@ def generate_correlation_id() -> str:
     """Generate a new correlation ID.
 
     Returns:
-        A new UUID4 string suitable for use as a correlation ID.
+        str: A new UUID4 string suitable for use as a correlation ID.
     """
     return str(uuid.uuid4())
 
@@ -151,12 +151,12 @@ def correlation_context_processor(
         )
 
     Args:
-        logger: The wrapped logger instance.
-        method_name: The name of the log method called.
+        _logger: The wrapped logger instance.
+        _method_name: The name of the log method called.
         event_dict: The event dictionary to process.
 
     Returns:
-        Updated event dictionary with correlation IDs.
+        EventDict: Updated event dictionary with correlation IDs.
     """
     correlation_id = _correlation_id_ctx.get()
     request_id = _request_id_ctx.get()
@@ -201,7 +201,7 @@ class CorrelationMiddleware(BaseHTTPMiddleware):
     """
 
     async def dispatch(
-        self, request: Request, call_next: Callable[[Request], Response]
+        self, request: Request, call_next: Callable[[Request], Awaitable[Response]]
     ) -> Response:
         """Process request with correlation ID handling.
 
@@ -210,7 +210,7 @@ class CorrelationMiddleware(BaseHTTPMiddleware):
             call_next: The next middleware or route handler.
 
         Returns:
-            The HTTP response with correlation headers added.
+            Response: The HTTP response with correlation headers added.
         """
         # Extract or generate correlation ID
         correlation_id = (

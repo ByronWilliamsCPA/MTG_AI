@@ -96,7 +96,8 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
         )
 
         # Remove server identification (OWASP A09)
-        response.headers.pop("Server", None)
+        if "Server" in response.headers:
+            del response.headers["Server"]
 
         return response
 
@@ -114,6 +115,7 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
         - fastapi-limiter (https://github.com/long2ice/fastapi-limiter)
 
     Args:
+        app: The ASGI application to wrap.
         requests_per_minute: Maximum requests per IP per minute
         burst_size: Maximum burst requests allowed
         max_tracked_ips: Maximum IPs to track (prevents memory exhaustion)
@@ -128,7 +130,6 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
         max_tracked_ips: int = 10000,
         cleanup_interval: int = 300,
     ) -> None:
-        """Initialize rate limiter."""
         super().__init__(app)
         self.requests_per_minute = requests_per_minute
         self.burst_size = burst_size
@@ -289,7 +290,7 @@ class SSRFPreventionMiddleware(BaseHTTPMiddleware):
             ip_str: IP address string to validate
 
         Returns:
-            True if the IP is private/internal, False otherwise
+            bool: True if the IP is private/internal, False otherwise.
         """
         import ipaddress
 
@@ -322,7 +323,7 @@ class SSRFPreventionMiddleware(BaseHTTPMiddleware):
             url: URL string to parse
 
         Returns:
-            Hostname string or None if parsing fails
+            str | None: Hostname string, or None if parsing fails.
         """
         from urllib.parse import urlparse
 
@@ -340,7 +341,7 @@ class SSRFPreventionMiddleware(BaseHTTPMiddleware):
             url: URL string to parse
 
         Returns:
-            Scheme string or None if parsing fails
+            str | None: Scheme string, or None if parsing fails.
         """
         from urllib.parse import urlparse
 
@@ -357,7 +358,7 @@ class SSRFPreventionMiddleware(BaseHTTPMiddleware):
             url: URL string to validate
 
         Returns:
-            True if the URL should be blocked, False otherwise
+            bool: True if the URL should be blocked, False otherwise.
         """
         # Check scheme
         scheme = self._extract_scheme_from_url(url)

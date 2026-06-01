@@ -146,11 +146,19 @@ repos:
 
   # ============================================================================
   # BasedPyright Type Checking
+  # DetachHead/basedpyright has no .pre-commit-hooks.yaml (Node.js repo).
+  # Use the installed Python binary via uv run instead.
   # ============================================================================
-  - repo: https://github.com/DetachHead/basedpyright
-    rev: "ad82d91ce241116737e65e660c5420dd0366f405"  # v1.39.6  # pragma: allowlist secret
+  - repo: local
     hooks:
       - id: basedpyright
+        name: basedpyright type check
+        language: system
+        entry: uv run basedpyright
+        types_or: [python, pyi]
+        pass_filenames: false
+        args: [src/]
+        stages: [pre-commit]
 
   # ============================================================================
   # Qlty Unified Quality Checks (Pre-Push)
@@ -288,4 +296,3 @@ exclude: |
       models/|
       .*\.pyc
   )$
-
