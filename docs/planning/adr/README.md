@@ -83,5 +83,5 @@ See `.claude/skills/project-planning/templates/adr-template.md` for the full tem
 
 ## More Information
 
-- [Document Guide](../.claude/skills/project-planning/reference/document-guide.md)
-- [Prompting Patterns](../.claude/skills/project-planning/reference/prompting-patterns.md)
+- Document Guide: `.claude/skills/project-planning/reference/document-guide.md`
+- Prompting Patterns: `.claude/skills/project-planning/reference/prompting-patterns.md`
