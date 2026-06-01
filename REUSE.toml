@@ -7,7 +7,7 @@ SPDX-PackageDownloadLocation = "https://github.com/ByronWilliamsCPA/MTG_AI"
 # BASELINE ANNOTATIONS - Standard paths from template
 # ============================================================================
 
-# Source code (Python, tools, tests) - Project License
+# Source code (Python, TypeScript, tools, tests) - Project License
 [[annotations]]
 path = [
     "src/**",
@@ -20,6 +20,7 @@ path = [
     "modal/**/*.py",
     "*.py",
     "noxfile.py",
+    "frontend/src/**",
 ]
 SPDX-License-Identifier = "MIT"
 SPDX-FileCopyrightText = "2026 Byron Williams <byronawilliams@gmail.com>"
@@ -28,7 +29,7 @@ SPDX-FileCopyrightText = "2026 Byron Williams <byronawilliams@gmail.com>"
 [[annotations]]
 path = [
     "docs/**",
-    "*.md",
+    "**/*.md",
     "tmp_cleanup/**/*.md",
     "benchmarks/*.md",
     "!LICENSES/*.txt",
@@ -39,20 +40,32 @@ SPDX-FileCopyrightText = "2026 Byron Williams <byronawilliams@gmail.com>"
 # Configuration files - CC0-1.0 (public domain dedication)
 [[annotations]]
 path = [
-    "*.toml",
-    "*.yml",
-    "*.yaml",
+    "**/*.toml",
+    "**/*.yml",
+    "**/*.yaml",
+    "**/*.json",
     ".github/**",
     ".gitignore",
     ".gitattributes",
-    ".pre-commit-config.yaml",
-    ".readthedocs.yaml",
-    "mkdocs.yml",
-    "poetry.lock",
-    "uv.lock",
+    ".dockerignore",
+    ".editorconfig",
+    ".env.example",
+    ".mutmut_config",
+    ".prettierrc",
+    ".shellcheckrc",
+    ".yamllint",
+    "Dockerfile",
+    "*/Dockerfile",
     "requirements/**/*.txt",
-    "benchmarks/labelmaps/**/*.yaml",
-    ".zenodo.json",
+    "uv.lock",
+    "frontend/.env.example",
+    "frontend/.gitignore",
+    "frontend/.prettierrc",
+    "frontend/eslint.config.js",
+    "frontend/index.html",
+    "frontend/vite.config.ts",
+    "frontend/tsconfig*.json",
+    "!LICENSES/*.txt",
 ]
 SPDX-License-Identifier = "CC0-1.0"
 SPDX-FileCopyrightText = "2026 Byron Williams <byronawilliams@gmail.com>"
@@ -110,13 +123,16 @@ path = [
 SPDX-License-Identifier = "CC0-1.0"
 SPDX-FileCopyrightText = "2026 Byron Williams <byronawilliams@gmail.com>"
 
-# Temporary and generated files - CC0-1.0
+# Temporary, generated, and override files - CC0-1.0
 [[annotations]]
 path = [
     "tmp_cleanup/**",
     "scripts/**/*.sh",
     "benchmarks/reports/**",
     "notebooks/**/*.ipynb",
+    "overrides/**",
+    "frontend/public/**",
+    "frontend/nginx.conf",
 ]
 SPDX-License-Identifier = "CC0-1.0"
 SPDX-FileCopyrightText = "2026 Byron Williams <byronawilliams@gmail.com>"
