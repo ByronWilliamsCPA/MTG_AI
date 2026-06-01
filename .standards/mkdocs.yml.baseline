@@ -1,0 +1,243 @@
+# MkDocs Configuration Baseline
+# =============================
+#
+# Source: ByronWilliamsCPA/cookiecutter-python-template
+# Version: 0.1.0
+# Updated: 2026-06-01
+#
+# This file contains the BASELINE MKDOCS CONFIGURATIONS that cruft updates automatically.
+# Merge changes into your root `mkdocs.yml` using: `/merge-standards` or ask Claude.
+#
+# WHAT IS IN THIS BASELINE:
+#   - Theme configuration (Material theme settings)
+#   - Color palette (light/dark mode)
+#   - Theme features (navigation, search, code)
+#   - Plugins configuration
+#   - Markdown extensions
+#   - Extra configuration (social, analytics placeholder)
+#
+# WHAT IS NOT IN THIS BASELINE (project-specific):
+#   - site_name, site_description, site_author
+#   - site_url, repo_url, repo_name
+#   - Navigation (nav:) - Entirely project-specific
+#   - Copyright notice (project-specific year/author)
+#
+# MERGE STRATEGY:
+#   - Compare theme/plugins/extensions with your mkdocs.yml
+#   - Add any NEW features or plugins
+#   - Update settings if template has improvements
+#   - PRESERVE your navigation structure entirely
+#   - PRESERVE project-specific metadata
+
+---
+
+# ==============================================================================
+# THEME CONFIGURATION - Material Theme
+# ==============================================================================
+# Reference: https://squidfunk.github.io/mkdocs-material/
+
+theme:
+  name: material
+  custom_dir: overrides
+  language: en
+
+  # Color Palette - Light/Dark Mode Toggle
+  palette:
+    # Light mode
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+
+    # Dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+
+  # Theme Features
+  features:
+    - navigation.instant      # Instant loading (SPA-like)
+    - navigation.tracking     # URL updates with scroll
+    - navigation.tabs         # Top-level navigation tabs
+    - navigation.sections     # Navigation sections
+    - navigation.expand       # Expand sections by default
+    - navigation.indexes      # Section index pages
+    - navigation.top          # Back to top button
+    - search.suggest          # Search suggestions
+    - search.highlight        # Highlight search results
+    - content.code.copy       # Copy code button
+    - content.code.annotate   # Code annotations
+
+  # Typography
+  font:
+    text: Roboto
+    code: Roboto Mono
+
+  # Icons
+  icon:
+    repo: fontawesome/brands/github
+    edit: material/pencil
+    view: material/eye
+
+# ==============================================================================
+# PLUGINS CONFIGURATION
+# ==============================================================================
+
+plugins:
+  # Search with advanced configuration
+  - search:
+      separator: '[\s\-,:!=\[\]()"/]+|(?!\b)(?=[A-Z][a-z])|\.(?!\d)|&[lg]t;'
+
+  # Automatic cross-references
+  - autorefs
+
+  # Python API Documentation
+  - mkdocstrings:
+      handlers:
+        python:
+          paths: [src]
+          options:
+            docstring_style: google
+            docstring_options:
+              ignore_init_summary: true
+            merge_init_into_class: true
+            show_if_no_docstring: false
+            show_source: false
+            show_root_heading: true
+            show_root_toc_entry: true
+            show_symbol_type_heading: true
+            show_symbol_type_toc: true
+            members_order: alphabetical
+            group_by_category: true
+            show_category_heading: true
+            filters:
+              - "!^_"  # Hide private members
+            extensions:
+              - griffe_pydantic  # Render Pydantic constraints
+
+  # Section index pages
+  - section-index
+
+  # Git revision dates
+  - git-revision-date-localized:
+      enable_creation_date: true
+      fallback_to_build_date: true
+      type: date
+
+  # Dynamic file generation (for tools catalog, etc.)
+  - gen-files:
+      scripts:
+        - tools/gen_tools_catalog.py
+
+# ==============================================================================
+# MARKDOWN EXTENSIONS
+# ==============================================================================
+# Reference: https://squidfunk.github.io/mkdocs-material/reference/
+
+markdown_extensions:
+  # Python Markdown Standard Extensions
+  - abbr                    # Abbreviations
+  - admonition              # Admonition boxes (note, warning, tip)
+  - attr_list               # Attribute lists for elements
+  - def_list                # Definition lists
+  - footnotes               # Footnote support
+  - md_in_html              # Markdown inside HTML
+  - tables                  # Table support
+  - toc:
+      permalink: true
+      toc_depth: 3
+
+  # PyMdownx Extensions (Material theme enhanced)
+  - pymdownx.arithmatex:
+      generic: true          # Math rendering with MathJax/KaTeX
+  - pymdownx.betterem:
+      smart_enable: all      # Smart emphasis handling
+  - pymdownx.caret           # Superscript (^) and insert
+  - pymdownx.details         # Collapsible details
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite    # Inline code highlighting
+  - pymdownx.keys            # Keyboard keys rendering
+  - pymdownx.mark            # Mark/highlight text
+  - pymdownx.smartsymbols    # Smart symbols (tm, (c), etc.)
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.tabbed:
+      alternate_style: true  # Content tabs
+  - pymdownx.tasklist:
+      custom_checkbox: true  # Task list checkboxes
+  - pymdownx.tilde           # Subscript (~) and strikethrough
+
+# ==============================================================================
+# EXTRA CONFIGURATION
+# ==============================================================================
+
+extra:
+  # Social links (customize URLs for your project)
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/ByronWilliamsCPA
+
+  # Analytics (uncomment and configure if needed)
+  # analytics:
+  #   provider: google
+  #   property: !ENV GOOGLE_ANALYTICS_KEY
+
+# ==============================================================================
+# VALIDATION
+# ==============================================================================
+# strict mode disabled to allow links to repo root files
+# These files are valid but outside docs/ directory
+strict: false
+
+# ==============================================================================
+# MERGE INSTRUCTIONS
+# ==============================================================================
+#
+# When `.standards/mkdocs.yml.baseline` is updated by cruft:
+#
+# 1. Compare theme configuration:
+#    - NEW features under theme.features
+#    - Color palette improvements
+#    - Font or icon changes
+#
+# 2. Compare plugins:
+#    - NEW plugins added to the stack
+#    - Updated plugin options (especially mkdocstrings)
+#    - New handler configurations
+#
+# 3. Compare markdown_extensions:
+#    - NEW extensions added
+#    - Updated extension options
+#    - New custom fences (like mermaid)
+#
+# 4. PRESERVE project-specific content:
+#    - Your entire `nav:` section
+#    - site_name, site_description, site_author
+#    - site_url, repo_url, repo_name
+#    - Custom social links
+#    - Custom analytics configuration
+#    - Any project-specific plugins (like blog, tags)
+#
+# RECOMMENDED APPROACH:
+#   Compare diff of .standards/mkdocs.yml.baseline with your mkdocs.yml
+#   section by section. Focus on theme/plugins/extensions; never touch
+#   site metadata or navigation from baseline.
+#
+# ---
+# *This baseline is automatically updated by cruft. Merge changes into mkdocs.yml.*

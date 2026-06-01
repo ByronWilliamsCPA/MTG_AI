@@ -1,0 +1,23 @@
+# ShellCheck Configuration
+# See https://github.com/koalaman/shellcheck/wiki
+
+# Shell dialect (bash is most common)
+shell=bash
+
+# Disable specific checks (be conservative - only disable when necessary)
+# SC1090: Can't follow non-constant source
+# SC1091: Not following sourced file
+disable=SC1090,SC1091
+
+# Enable optional checks
+# check-unassigned-uppercase: Warn about unassigned uppercase variables
+enable=check-unassigned-uppercase
+
+# Severity threshold (error, warning, info, style)
+# Only report errors and warnings by default
+severity=warning
+
+# Source paths (for following source/. commands)
+# Uncomment and adjust if your scripts source from specific directories
+# source-path=SCRIPTDIR
+# source-path=./scripts

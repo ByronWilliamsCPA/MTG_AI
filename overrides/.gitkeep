@@ -1,0 +1,7 @@
+# This directory is used for MkDocs Material theme overrides.
+# See: https://squidfunk.github.io/mkdocs-material/customization/#extending-the-theme
+#
+# Example customizations:
+# - overrides/main.html (extend base template)
+# - overrides/partials/ (override specific partials)
+# - overrides/assets/ (custom CSS/JS)

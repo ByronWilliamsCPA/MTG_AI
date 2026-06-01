@@ -1,0 +1,37 @@
+# CODEOWNERS for MTG AI
+# This file defines code ownership for automated review assignment
+# and branch protection enforcement.
+#
+# Format: path/pattern @github-username or @organization/team
+# Documentation: https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+
+# Default owner for all files
+*                          @ByronWilliamsCPA
+
+# Documentation
+/docs/**                   @ByronWilliamsCPA
+*.md                       @ByronWilliamsCPA
+
+# GitHub workflows and configuration
+/.github/workflows/**      @ByronWilliamsCPA
+/.github/**                @ByronWilliamsCPA
+
+# Source code
+/src/**                    @ByronWilliamsCPA
+
+# Tests
+/tests/**                  @ByronWilliamsCPA
+
+# Configuration files
+pyproject.toml             @ByronWilliamsCPA
+uv.lock                    @ByronWilliamsCPA
+.pre-commit-config.yaml    @ByronWilliamsCPA
+mkdocs.yml                 @ByronWilliamsCPA
+
+# Security and compliance
+LICENSE                    @ByronWilliamsCPA
+
+# CI/CD and tooling
+/scripts/**                @ByronWilliamsCPA
+/tools/**                  @ByronWilliamsCPA
+noxfile.py                 @ByronWilliamsCPA

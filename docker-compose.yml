@@ -1,0 +1,187 @@
+# Docker Compose configuration for MTG AI
+# Development and production-ready setup with common services
+
+version: '3.9'
+
+services:
+  # =============================================================================
+  # Application Service
+  # =============================================================================
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        BUILD_ENV: ${ENVIRONMENT:-development}
+    image: mtg_ai:${VERSION:-latest}
+    container_name: mtg_ai-app
+    ports:
+      - "${APP_PORT:-8000}:8000"
+    environment:
+      # Core settings
+      ENVIRONMENT: ${ENVIRONMENT:-development}
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+      JSON_LOGS: ${JSON_LOGS:-false}
+
+      # Database configuration
+      DATABASE_URL: ${DATABASE_URL:-postgresql://mtg_ai:password@db:5432/mtg_ai}
+      # Redis cache (if applicable)
+      # REDIS_URL: ${REDIS_URL:-redis://redis:6379/0}
+
+      # Sentry (error tracking)
+      # SENTRY_DSN: ${SENTRY_DSN:-}
+      # SENTRY_ENVIRONMENT: ${ENVIRONMENT:-development}
+
+      # Google Cloud credentials (if using Assured OSS)
+      # GOOGLE_APPLICATION_CREDENTIALS_B64: ${GOOGLE_APPLICATION_CREDENTIALS_B64:-}
+      # GOOGLE_CLOUD_PROJECT: ${GOOGLE_CLOUD_PROJECT:-}
+
+    volumes:
+      # Development: Mount source code for hot reload
+      - ./src:/app/src:ro
+      - ./tests:/app/tests:ro
+      # Logs (optional)
+      # - ./logs:/app/logs
+
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health/live"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 40s
+    restart: unless-stopped
+
+    # Security: Run as non-root user
+    user: "1000:1000"
+
+    networks:
+      - mtg_ai-network
+
+# =============================================================================
+  # Frontend Service (React + Vite)
+  # =============================================================================
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      target: development
+    image: mtg_ai-frontend:${VERSION:-latest}
+    container_name: mtg_ai-frontend
+    ports:
+      - "${FRONTEND_PORT:-3000}:3000"
+    environment:
+      - VITE_API_URL=http://localhost:${APP_PORT:-8000}
+    volumes:
+      # Development: Mount source code for hot reload
+      - ./frontend/src:/app/src:ro
+      - ./frontend/public:/app/public:ro
+      - ./frontend/index.html:/app/index.html:ro
+    depends_on:
+      - app
+    restart: unless-stopped
+
+    networks:
+      - mtg_ai-network
+
+# =============================================================================
+  # Database Service (PostgreSQL)
+  # =============================================================================
+  db:
+    image: postgres:16-alpine
+    container_name: mtg_ai-db
+    environment:
+      POSTGRES_DB: mtg_ai
+      POSTGRES_USER: mtg_ai
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-password}
+      POSTGRES_INITDB_ARGS: "--encoding=UTF8 --locale=en_US.UTF-8"
+
+    volumes:
+      # Persistent data
+      - postgres-data:/var/lib/postgresql/data
+      # Init scripts (optional)
+      # - ./scripts/init-db.sql:/docker-entrypoint-initdb.d/init.sql:ro
+
+    ports:
+      - "${DB_PORT:-5432}:5432"
+
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U mtg_ai"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+    restart: unless-stopped
+
+    networks:
+      - mtg_ai-network
+
+# =============================================================================
+  # Redis Service (Caching/Sessions)
+  # =============================================================================
+  # redis:
+  #   image: redis:7-alpine
+  #   container_name: mtg_ai-redis
+  #   command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD:-redispassword}
+  #
+  #   volumes:
+  #     - redis-data:/data
+  #
+  #   ports:
+  #     - "${REDIS_PORT:-6379}:6379"
+  #
+  #   healthcheck:
+  #     test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
+  #     interval: 10s
+  #     timeout: 3s
+  #     retries: 5
+  #
+  #   restart: unless-stopped
+  #
+  #   networks:
+  #     - mtg_ai-network
+
+# =============================================================================
+# Volumes (Persistent Storage)
+# =============================================================================
+volumes:
+postgres-data:
+    driver: local
+# redis-data:
+  #   driver: local
+
+# =============================================================================
+# Networks
+# =============================================================================
+networks:
+  mtg_ai-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.25.0.0/16
+
+# =============================================================================
+# Usage Instructions
+# =============================================================================
+# Development:
+#   docker-compose up -d
+#   docker-compose logs -f app
+#   docker-compose exec app bash
+#
+# Production:
+#   docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+#
+# Rebuild after dependency changes:
+#   docker-compose up -d --build
+#
+# View logs:
+#   docker-compose logs -f
+#
+# Stop services:
+#   docker-compose down
+#
+# Clean up (including volumes):
+#   docker-compose down -v

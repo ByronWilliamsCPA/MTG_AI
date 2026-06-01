@@ -1,0 +1,193 @@
+# Docker build context exclusions for MTG AI
+# Reduces build context size and improves build performance
+
+# =============================================================================
+# Version Control
+# =============================================================================
+.git/
+.gitignore
+.gitattributes
+.github/
+
+# =============================================================================
+# Python Cache and Build Artifacts
+# =============================================================================
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# =============================================================================
+# Virtual Environments
+# =============================================================================
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+.python-version
+
+# =============================================================================
+# Testing and Coverage
+# =============================================================================
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+.tox/
+.nox/
+coverage.xml
+*.cover
+.hypothesis/
+junit.xml
+
+# =============================================================================
+# Type Checking and Linting
+# =============================================================================
+.mypy_cache/
+.ruff_cache/
+.pytype/
+.pyre/
+.pyright/
+
+# =============================================================================
+# Documentation
+# =============================================================================
+docs/_build/
+docs/.doctrees/
+site/
+.mkdocs_cache/
+
+# =============================================================================
+# IDEs and Editors
+# =============================================================================
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+*.sublime-project
+*.sublime-workspace
+
+# =============================================================================
+# Development and Testing Files
+# =============================================================================
+tests/
+test_*.py
+*_test.py
+conftest.py
+.pre-commit-config.yaml
+.editorconfig
+pyrightconfig.json
+
+# =============================================================================
+# CI/CD and Deployment
+# =============================================================================
+.github/
+.gitlab-ci.yml
+.circleci/
+.travis.yml
+Jenkinsfile
+azure-pipelines.yml
+
+# =============================================================================
+# Docker Files (avoid recursion)
+# =============================================================================
+Dockerfile
+docker-compose*.yml
+.dockerignore
+
+# =============================================================================
+# Logs and Temporary Files
+# =============================================================================
+*.log
+logs/
+tmp/
+temp/
+*.tmp
+*.bak
+
+# =============================================================================
+# Database and Data Files
+# =============================================================================
+*.db
+*.sqlite
+*.sqlite3
+data/
+*.csv
+*.json  # Be careful - might want to include some JSON files
+*.xml
+
+# =============================================================================
+# Security and Secrets
+# =============================================================================
+.env*
+!.env.example
+*.pem
+*.key
+*.cert
+credentials*.json
+secrets*.json
+.aws/
+.ssh/
+
+# =============================================================================
+# Project-Specific
+# =============================================================================
+# Add project-specific files to ignore
+
+# README.md - intentionally not excluded; required by pyproject.toml [project] readme
+# so `uv sync --frozen --no-dev` (Dockerfile:35) can install the project itself.
+LICENSE
+CHANGELOG.md
+CONTRIBUTING.md
+CODE_OF_CONDUCT.md
+.mailmap
+
+# Validation and scripts (not needed in runtime)
+validation/
+scripts/
+tools/
+
+# Fuzz testing
+fuzz/
+
+# REUSE compliance (not needed in runtime)
+REUSE.toml
+LICENSES/
+
+# Nox automation (dev only)
+noxfile.py
+
+# SBOM files (generated artifacts)
+sbom-*.json
+sbom-*.xml
+
+# Renovate config
+renovate.json
+
+# Codecov config
+codecov.yml
+
+# OSV scanner
+osv-scanner.toml

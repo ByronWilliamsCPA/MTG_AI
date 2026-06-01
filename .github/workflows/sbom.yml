@@ -1,0 +1,44 @@
+# SBOM & Security Scan - Calls Org-Level Reusable Workflow
+# This is a lightweight caller workflow that invokes the organization's
+# shared SBOM generation and security scanning workflow.
+#
+# Features:
+#   - CycloneDX SBOM generation
+#   - Trivy vulnerability scanning
+#   - License compliance checking
+#   - SARIF upload to GitHub Security tab
+name: SBOM & Security Scan
+
+on:
+  pull_request:
+    paths:
+      - "pyproject.toml"
+      - "uv.lock"
+      - ".github/workflows/sbom.yml"
+  push:
+    branches:
+      - main
+      - master
+      - develop
+    paths:
+      - "pyproject.toml"
+      - "uv.lock"
+  schedule:
+    # Weekly scan every Monday at 8:00 AM UTC
+    - cron: "0 8 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  security-events: write
+
+jobs:
+  sbom:
+    name: SBOM & Security
+    uses: ByronWilliamsCPA/.github/.github/workflows/python-sbom.yml@main
+    with:
+      python-version: '3.12'
+      fail-on-vulnerabilities: true
+      severity-threshold: 'CRITICAL,HIGH'
+      artifact-retention-days: 90
+      fail-on-forbidden-licenses: false

@@ -1,0 +1,97 @@
+# Allowed tags for documentation front matter
+# Tags must be snake_case lowercase and listed here to be valid
+
+allowed:
+  # Core Technical Areas
+  - core
+  - framework
+  - utilities
+  - helpers
+
+  # Development & Tooling
+  - testing
+  - validation
+  - benchmarks
+  - benchmarking
+  - evaluation
+  - performance
+  - optimization
+  - tooling
+  - linting
+  - ruff
+  - poetry
+  - dependencies
+  - packaging
+  - mutation_testing
+  - property_based_testing
+  - hypothesis
+  - mocking
+
+  # Documentation
+  - front_matter
+  - api
+  - api_reference
+  - reference
+  - home
+  - overview
+  - configuration
+  - usage
+  - taxonomy
+  - coverage
+  - guide
+  - tutorial
+  - architecture
+  - documentation
+  - contributing
+  - development
+  - installation
+  - adr
+  - decisions
+  - mkdocs
+  - pydantic
+  - json_ld
+  - requirements
+  - specifications
+  - functional
+  - non_functional
+  - research
+  - analysis
+  - tools
+  - integration
+  - automation
+
+  # Infrastructure & CI/CD
+  - ci_cd
+  - github_actions
+  - build
+  - deployment
+  - monitoring
+  - observability
+  - infrastructure
+
+  # Quality & Standards
+  - code_quality
+  - quality
+  - quality_assurance
+  - security
+  - compliance
+  - licensing
+  - license
+  - legal
+  - safety
+  - guardrails
+  - deprecated
+
+  # Project Management
+  - planning
+  - roadmap
+  - project_management
+  - project
+  - changelog
+  - releases
+  - version_history
+  - mvp
+  - scope
+  - boundaries
+  - feedback
+  - template

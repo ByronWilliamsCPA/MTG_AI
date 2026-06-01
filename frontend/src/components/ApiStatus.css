@@ -1,0 +1,55 @@
+.api-status {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  padding: 1rem;
+  border-radius: 8px;
+  background: white;
+  border: 1px solid #dee2e6;
+}
+
+.api-status__indicator {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  margin-top: 4px;
+  flex-shrink: 0;
+}
+
+.api-status--loading .api-status__indicator {
+  background: #ffc107;
+  animation: pulse 1.5s infinite;
+}
+
+.api-status--connected .api-status__indicator {
+  background: #28a745;
+}
+
+.api-status--error .api-status__indicator {
+  background: #dc3545;
+}
+
+.api-status strong {
+  display: block;
+  margin-bottom: 0.25rem;
+}
+
+.api-status p {
+  margin: 0;
+  color: #666;
+  font-size: 0.9rem;
+}
+
+.api-status small {
+  color: #999;
+  font-size: 0.8rem;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}

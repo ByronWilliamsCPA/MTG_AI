@@ -1,0 +1,576 @@
+# pyproject.toml Tool Configuration Baseline
+# ==========================================
+#
+# Source: ByronWilliamsCPA/cookiecutter-python-template
+# Version: 0.1.0
+# Updated: 2026-06-01
+#
+# This file contains the BASELINE TOOL CONFIGURATIONS that cruft updates automatically.
+# Merge changes into your root `pyproject.toml` using: `/merge-standards` or ask Claude.
+#
+# WHAT IS IN THIS BASELINE:
+#   - [tool.ruff] - Linting and formatting configuration
+#   - [tool.basedpyright] - Type checking configuration
+#   - [tool.pytest.ini_options] - Test runner configuration
+#   - [tool.coverage.*] - Coverage configuration
+#   - [tool.interrogate] - Docstring coverage
+#   - [tool.pydoclint] - Docstring validation
+#   - [tool.mutmut] - Mutation testing
+#   - [tool.bandit] - Security scanning
+#   - [tool.vulture] - Dead code detection
+#   - [tool.semantic_release] - Automated versioning (if enabled)
+#
+# WHAT IS NOT IN THIS BASELINE (project-specific):
+#   - [project] metadata (name, version, description, authors)
+#   - [project.dependencies] and [project.optional-dependencies]
+#   - [project.scripts]
+#   - [build-system]
+#   - [tool.uv] configuration
+#
+# MERGE STRATEGY:
+#   - Compare tool configs below with your pyproject.toml
+#   - Add any NEW rule sets or options
+#   - Update ignore patterns if template has improvements
+#   - PRESERVE project-specific customizations (known-first-party, paths, etc.)
+
+# ==============================================================================
+# RUFF CONFIGURATION - Consolidated Linting & Formatting
+# ==============================================================================
+# Reference: https://docs.astral.sh/ruff/configuration/
+
+[tool.ruff]
+line-length = 88
+target-version = "py312"
+exclude = [
+    ".git",
+    ".mypy_cache",
+    ".ruff_cache",
+    ".venv",
+    "__pycache__",
+    "dist",
+    "build",
+]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+skip-magic-trailing-comma = false
+line-ending = "auto"
+docstring-code-format = true
+docstring-code-line-length = "dynamic"
+
+[tool.ruff.lint]
+# Rule selection aligned with Google Python Style Guide + PyStrict enhancements
+# Reference: https://google.github.io/styleguide/pyguide.html
+# Reference: https://github.com/Ranteck/PyStrict-strict-python
+select = [
+    # Core Python style (Google-aligned)
+    "E",    # pycodestyle errors
+    "W",    # pycodestyle warnings
+    "F",    # Pyflakes
+    "I",    # isort (import sorting)
+    "N",    # pep8-naming (Google naming conventions)
+    "D",    # pydocstyle (Google docstring style)
+    "UP",   # pyupgrade (modern Python syntax)
+
+    # Type annotations (Google requires type hints)
+    "ANN",  # flake8-annotations (type hint enforcement)
+    "TCH",  # flake8-type-checking (TYPE_CHECKING imports)
+    "FA",   # flake8-future-annotations (use from __future__ import annotations)
+
+    # Code quality (Pylint-equivalent rules)
+    "C4",   # flake8-comprehensions
+    "C90",  # mccabe complexity
+    "PL",   # Pylint rules (Google uses Pylint)
+    "B",    # flake8-bugbear
+    "SIM",  # flake8-simplify
+    "ARG",  # flake8-unused-arguments
+    "RET",  # flake8-return
+    "PIE",  # flake8-pie
+
+    # Security
+    "S",    # flake8-bandit
+
+    # Best practices
+    "T10",  # flake8-debugger (no debugger statements in production)
+    "T20",  # flake8-print (no print in production)
+    "PT",   # flake8-pytest-style
+    "Q",    # flake8-quotes
+    "PTH",  # flake8-use-pathlib
+    "A",    # flake8-builtins
+    "DTZ",  # flake8-datetimez
+
+    # Performance and modernization
+    "PERF", # Performance anti-patterns
+    "FURB", # Refurb - modernization
+
+    # Additional quality
+    "LOG",  # Logging best practices
+    "G",    # flake8-logging-format (logging string formatting)
+    "TRY",  # Exception handling
+    "ERA",  # Commented-out code
+    "FBT",  # Boolean trap detection
+    "ASYNC",# Async/await best practices
+    "RUF",  # Ruff-specific rules
+
+    # PyStrict additions (stricter standards)
+    "BLE",  # flake8-blind-except (no bare except or except Exception)
+    "EM",   # flake8-errmsg (error message best practices)
+    "SLF",  # flake8-self (private member access)
+    "INP",  # flake8-no-pep420 (require __init__.py in packages)
+    "ISC",  # flake8-implicit-str-concat (implicit string concatenation)
+    "PGH",  # pygrep-hooks (deprecated type comments, blanket ignores)
+    "RSE",  # flake8-raise (raise statement best practices)
+    "TID",  # flake8-tidy-imports (banned imports, relative imports)
+    "YTT",  # flake8-2020 (Python version checks)
+]
+
+ignore = [
+    # Formatting (handled by ruff format)
+    "E501",   # line too long (handled by formatter)
+    "COM812", # missing trailing comma (handled by formatter)
+    "ISC001", # implicit string concatenation (handled by formatter)
+
+    # Docstring style (Google convention conflicts)
+    "D203",   # one-blank-line-before-class (conflicts with D211)
+    "D212",   # multi-line-summary-first-line (conflicts with D213)
+    "D105",   # missing docstring in magic method (__str__, etc.)
+    "D107",   # missing docstring in __init__ (class docstring sufficient)
+
+    # Type annotations (pragmatic exceptions)
+    "ANN401", # dynamically typed expressions (Any) - sometimes necessary
+
+    # Pylint rules (too strict for all cases)
+    "PLR0913", # too many arguments (>5) - sometimes necessary for APIs
+    "PLR2004", # magic value comparison - too noisy
+    "PLW2901", # outer loop variable overwritten - sometimes intentional
+
+    # Practical exceptions
+    "B008",   # function calls in defaults (Pydantic/FastAPI pattern)
+    "S101",   # assert (pytest uses assert statements)
+    "PTH123", # open() vs pathlib (sometimes direct open is clearer)
+    "FBT001", # Boolean positional arg (acceptable in DSLs)
+    "FBT002", # Boolean default arg (acceptable in DSLs)
+    "TRY003", # Long exception messages (descriptive is good)
+]
+
+# McCabe Complexity Configuration (Google/Pylint alignment)
+[tool.ruff.lint.mccabe]
+max-complexity = 10  # Google/Pylint default
+
+# Pylint Configuration (Function complexity limits)
+[tool.ruff.lint.pylint]
+max-statements = 100   # Function length hard limit
+max-branches = 12      # Nesting/branching limit
+max-nested-blocks = 4  # Explicit nesting limit
+max-returns = 6        # Return statement limit
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
+
+[tool.ruff.lint.isort]
+known-first-party = ["mtg_ai"]
+
+[tool.ruff.lint.per-file-ignores]
+# Module init files
+"__init__.py" = ["F401", "D104"]
+
+# Test files (relaxed rules for test code)
+"tests/**/*.py" = [
+    "ANN",    # Type annotations not required in tests
+    "ARG",    # Unused arguments (fixtures)
+    "D",      # Docstrings not required in tests
+    "PLR",    # Pylint refactor suggestions
+    "PLC0415", # Imports inside test functions are idiomatic
+    "ERA",    # Commented code (test debugging)
+    "SLF",    # Private member access (testing internals)
+    "BLE",    # Blind except (test error handling)
+    "EM",     # Error messages (test exceptions)
+    "TRY",    # Exception handling (test assertions)
+    "INP",    # No __init__.py required for test directories
+    # Security rules OK to skip in tests
+    "S101",   # assert_used - pytest uses asserts
+    "S105",   # hardcoded_password_string - test credentials are fake
+    "S106",   # hardcoded_password_funcarg - test fixtures with fake passwords
+    "S107",   # hardcoded_password_default - test default values
+    "S108",   # hardcoded_tmp_directory - test temp paths are intentional
+    "S311",   # random - non-crypto random in tests is fine
+    "S113",   # request_without_timeout - test HTTP calls may be mocked
+]
+
+# Scripts (utility code - not packages)
+"scripts/**/*.py" = [
+    "ANN", "D", "T20", "TRY", "PTH", "PLR",
+    "INP",    # Scripts are not packages
+    "EM",     # Utility scripts don't need perfect error messages
+    "T10",    # Debugger allowed during script development
+    "BLE",    # Blind except (error handling in scripts)
+    "C901",   # Complexity allowed in utility scripts
+    "RUF012", # Class variable annotations (not needed in scripts)
+    "SIM",    # Simplification suggestions (scripts prioritize clarity)
+    "F821",   # Allow dynamic imports
+    "G201",   # Logging patterns (scripts may use .error with exc_info)
+    # Security rules OK to skip in scripts
+    "S101",   # assert_used - scripts may use asserts for validation
+    "S104",   # hardcoded_bind_all_interfaces - dev scripts may bind 0.0.0.0
+    "S108",   # hardcoded_tmp_directory - scripts use /tmp intentionally
+    "S311",   # random - non-crypto random in scripts is fine
+    "S603",   # subprocess_without_shell_equals_true - scripts validate inputs
+    "S607",   # start_process_with_partial_path - scripts use PATH
+]
+
+# Benchmarks (performance testing)
+"benchmarks/**/*.py" = [
+    "ANN", "D", "T20", "ARG", "TRY", "PLR",
+    "INP",    # Benchmarks are not packages
+    "EM",     # Benchmark exceptions
+]
+
+# Tools (development utilities)
+"tools/**/*.py" = [
+    "ANN", "D", "T20", "TRY", "PLR",
+    "INP",    # Tools are not packages
+    "EM",     # Tool exceptions
+    "BLE",    # Blind except (error handling in tools)
+    "C901",   # Complexity allowed in utility scripts
+]
+
+# Nox configuration
+"noxfile.py" = ["ANN", "D", "T20", "PLR", "INP", "PLC0415"]
+
+# Fuzz testing (Atheris harnesses have specific patterns)
+"fuzz/**/*.py" = [
+    "N802",   # TestOneInput required by Atheris
+    "S110",   # try-except-pass is intentional for fuzzing
+    "BLE",    # Blind except is necessary in fuzz targets
+    "INP",    # Fuzz tests are not packages
+    "ANN", "D", "TRY",
+]
+
+# Claude skills and scripts
+".claude/**/*.py" = [
+    "T20",    # Print allowed for CLI output
+    "C901",   # Complexity allowed in utility scripts
+    "ANN", "D", "TRY", "PLR",
+    "INP",    # Not packages
+]
+
+# ==============================================================================
+# BASEDPYRIGHT CONFIGURATION - Type Checking
+# ==============================================================================
+# Replaces MyPy with faster, stricter type checking
+# Reference: https://docs.basedpyright.com
+
+[tool.basedpyright]
+pythonVersion = "3.12"
+pythonPlatform = "All"
+
+# Type checking mode: basic, standard, strict, all
+# "strict" aligns with Google Python Style Guide requirements
+typeCheckingMode = "strict"
+
+# Source paths
+include = ["src"]
+exclude = [
+    "**/__pycache__",
+    "**/node_modules",
+    ".venv",
+    "build",
+    "dist",
+]
+
+# Strict mode customizations
+reportMissingImports = "error"
+reportMissingTypeStubs = "warning"
+reportUnusedImport = "error"
+reportUnusedClass = "error"
+reportUnusedFunction = "error"
+reportUnusedVariable = "error"
+reportDuplicateImport = "error"
+reportPrivateUsage = "warning"
+reportTypeCommentUsage = "warning"
+reportConstantRedefinition = "error"
+reportIncompatibleMethodOverride = "error"
+reportIncompatibleVariableOverride = "error"
+reportInconsistentConstructor = "error"
+reportOverlappingOverload = "error"
+reportUninitializedInstanceVariable = "warning"
+reportInvalidStringEscapeSequence = "error"
+reportUnknownParameterType = "warning"
+reportUnknownArgumentType = "warning"
+reportUnknownLambdaType = "warning"
+reportUnknownVariableType = "warning"
+reportUnknownMemberType = "warning"
+reportMissingParameterType = "warning"
+reportMissingTypeArgument = "warning"
+reportCallInDefaultInitializer = "warning"
+reportUnnecessaryIsInstance = "warning"
+reportUnnecessaryCast = "warning"
+reportUnnecessaryComparison = "warning"
+reportUnnecessaryContains = "warning"
+reportAssertAlwaysTrue = "error"
+reportSelfClsParameterName = "error"
+reportImplicitStringConcatenation = "warning"
+reportUndefinedVariable = "error"
+reportUnboundVariable = "error"
+reportUnhashable = "error"
+reportInvalidTypeVarUse = "error"
+
+# BasedPyright-specific enhancements
+reportUnreachable = "error"           # Detect unreachable code
+reportAny = "warning"                  # Flag usage of Any type
+reportExplicitAny = "warning"          # Flag explicit Any annotations
+reportIgnoreCommentWithoutRule = "warning"  # Require specific ignore rules
+
+# PyStrict strict inference settings
+strictListInference = true             # Infer list element types strictly
+strictDictionaryInference = true       # Infer dict key/value types strictly
+strictSetInference = true              # Infer set element types strictly
+strictParameterNoneValue = true        # Require explicit Optional for None defaults
+analyzeUnannotatedFunctions = true     # Analyze functions without type hints
+deprecateTypingAliases = true          # Warn on deprecated typing module aliases
+
+# ==============================================================================
+# PYTEST CONFIGURATION - Test Runner
+# ==============================================================================
+
+[tool.pytest.ini_options]
+minversion = "7.0"
+testpaths = ["tests"]
+pythonpath = [".", "src"]
+python_files = ["test_*.py", "*_test.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+addopts = [
+    "-ra",
+    "--strict-markers",
+    "--strict-config",
+    "--cov=src/mtg_ai",
+    "--cov-report=html",
+    "--cov-report=term-missing:skip-covered",
+    "--cov-report=xml",
+    "--cov-fail-under=80",
+]
+markers = [
+    "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+    "integration: marks tests as integration tests",
+    "unit: marks tests as unit tests",
+    "benchmark: marks tests as benchmark tests",
+    "py310: marks tests specific to Python 3.10",
+    "py311plus: marks tests requiring Python 3.11+",
+    "py313plus: marks tests requiring Python 3.13+ (PEP 594 removals)",
+    "py314plus: marks tests requiring Python 3.14+ (free-threaded, PEP 649)",
+]
+
+# ==============================================================================
+# COVERAGE CONFIGURATION
+# ==============================================================================
+
+[tool.coverage.run]
+source = ["src"]
+branch = true
+# relative_files = true  # Enable if using SonarCloud in GitHub Actions
+omit = [
+    # Test files
+    "*/tests/*",
+    "*/test_*.py",
+
+    # Python internals
+    "*/__pycache__/*",
+    "*/site-packages/*",
+
+    # Development artifacts
+    "validation/*",
+    "benchmarks/*",
+    "data/*",
+    "scripts/*",
+    "notebooks/*",
+    "tmp_cleanup/*",
+]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if __name__ == .__main__.:",
+    "if TYPE_CHECKING:",
+    "class .*\\bProtocol\\):",
+    "@(abc\\.)?abstractmethod",
+]
+precision = 2
+show_missing = true
+
+# ==============================================================================
+# INTERROGATE CONFIGURATION - Docstring Coverage
+# ==============================================================================
+
+[tool.interrogate]
+verbose = 1
+fail-under = 85
+exclude = ["tests", "docs", "build", "dist"]
+ignore-init-method = true
+ignore-init-module = true
+color = true
+
+# ==============================================================================
+# PYDOCLINT CONFIGURATION - Docstring Argument Validation
+# ==============================================================================
+# Validates that docstring arguments match function signatures.
+# Replaces archived darglint. Reference: https://jsh9.github.io/pydoclint/config_options.html
+# Posture: raises checking on; requires Returns for value-returning functions and Yields for
+# generators; only the implicit-None return case is lenient (require-return-section-when-returning-nothing=false).
+
+[tool.pydoclint]
+style = "google"
+exclude = '\.git|tests/|scripts/|benchmarks/|tools/|noxfile\.py|\.claude/'
+arg-type-hints-in-docstring = true
+arg-type-hints-in-signature = true
+skip-checking-raises = false
+require-return-section-when-returning-nothing = false
+
+# ==============================================================================
+# MUTATION TESTING CONFIGURATION (mutmut)
+# ==============================================================================
+
+[tool.mutmut]
+paths_to_mutate = "src/"
+backup = false
+runner = "uv run pytest -x --assert=plain -o addopts=''"
+tests_dir = "tests/"
+dict_synonyms = "Struct, NamedStruct"
+
+# ==============================================================================
+# BANDIT SECURITY CONFIGURATION
+# ==============================================================================
+# Run: uv run bandit -c pyproject.toml -r src/
+# Reference: https://bandit.readthedocs.io/
+
+[tool.bandit]
+# Directories to exclude from scanning
+exclude_dirs = [
+    "tests",
+    "scripts",
+    "benchmarks",
+    "tools",
+    "fuzz",
+    "docs",
+    ".venv",
+    "venv",
+    "build",
+    "dist",
+]
+
+# Skip these checks (false positives or acceptable in context)
+skips = [
+    "B101",  # assert_used - pytest uses assert statements
+    "B104",  # hardcoded_bind_all_interfaces - often intentional for dev servers
+    "B311",  # random - non-crypto random is fine for non-security purposes
+    "B404",  # import_subprocess - subprocess is needed, usage is checked
+    "B603",  # subprocess_without_shell_equals_true - we validate inputs
+]
+
+# Targets to scan (can be overridden on command line)
+targets = ["src"]
+
+[tool.bandit.assert_used]
+skips = ["**/test_*.py", "**/*_test.py"]
+
+# ==============================================================================
+# VULTURE CONFIGURATION - Dead Code Detection
+# ==============================================================================
+# Detects unused code to maintain clean codebase
+# Run: uv run vulture src/
+
+[tool.vulture]
+min_confidence = 80
+paths = ["src/"]
+exclude = [
+    "tests/",
+    "docs/",
+    ".venv/",
+    "venv/",
+    "build/",
+    "dist/",
+]
+# Whitelist common false positives
+ignore_names = [
+    "visit_*",  # AST visitor methods
+    "setUp",
+    "tearDown",
+    "setUpClass",
+    "tearDownClass",
+    "__*__",  # Magic methods
+]
+
+# ==============================================================================
+# SEMANTIC RELEASE CONFIGURATION (if enabled)
+# ==============================================================================
+# Automates versioning and changelog generation based on conventional commits
+# Reference: https://python-semantic-release.readthedocs.io/
+#
+# NOTE: This section is only included if include_semantic_release == "yes"
+# Uncomment and customize if you enable semantic release later.
+
+# [tool.semantic_release]
+# version_toml = ["pyproject.toml:project.version"]
+# commit_parser = "conventional_commits"
+# commit_parser_options = { parse_squash_commits = true, ignore_merge_commits = true }
+# major_on_zero = false  # Don't bump to 1.0.0 automatically
+# allow_zero_version = true  # Allow 0.x.x versions
+#
+# [tool.semantic_release.branches.main]
+# match = "(main|master)"
+# prerelease = false
+#
+# [tool.semantic_release.branches.develop]
+# match = "develop"
+# prerelease = true
+# prerelease_token = "dev"
+#
+# [tool.semantic_release.changelog]
+# template_dir = "templates"
+# changelog_file = "CHANGELOG.md"
+# exclude_commit_patterns = [
+#     "^chore\\(release\\):",
+#     "^ci:",
+#     "^build:",
+# ]
+#
+# [tool.semantic_release.remote]
+# type = "github"
+# token = { env = "GH_TOKEN" }
+#
+# [tool.semantic_release.publish]
+# dist_glob_patterns = ["dist/*"]
+# upload_to_vcs_release = true
+
+# ==============================================================================
+# MERGE INSTRUCTIONS
+# ==============================================================================
+#
+# When `.standards/pyproject.toml.baseline` is updated by cruft:
+#
+# 1. Compare tool sections - Identify what changed in each [tool.*] section
+# 2. Merge improvements:
+#    - NEW rule selections in Ruff
+#    - NEW ignore patterns that make sense for your project
+#    - NEW per-file-ignores for different directory patterns
+#    - NEW markers for pytest
+#    - NEW coverage exclusion patterns
+#    - Updated security skips in Bandit
+# 3. PRESERVE project-specific customizations:
+#    - known-first-party in isort
+#    - Your custom markers
+#    - Your custom ignore patterns
+#    - Project-specific coverage source paths
+#    - Any custom tool configurations
+#
+# RECOMMENDED APPROACH:
+#   Compare diff of .standards/pyproject.toml.baseline with your pyproject.toml
+#   section by section. Only update the tool configurations; never touch
+#   [project] or [project.dependencies] sections from baseline.
+#
+# ---
+# *This baseline is automatically updated by cruft. Merge changes into pyproject.toml.*

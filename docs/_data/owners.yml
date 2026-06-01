@@ -1,0 +1,8 @@
+# Allowed owners for documentation front matter
+# Owners must be listed here to be valid
+# Format: owner_key: GitHub team or individual
+
+owners:
+  core-maintainer: "@ByronWilliamsCPA"
+  team-lead: "@ByronWilliamsCPA/team"
+  documentation: "@ByronWilliamsCPA/docs-team"

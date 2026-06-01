@@ -1,0 +1,136 @@
+# Qlty Configuration for MTG AI
+# This configuration uses Qlty for unified code quality analysis.
+# Note: Most security tools run via pre-commit hooks instead.
+
+config_version = "0"
+
+# File patterns to completely exclude from all analysis
+exclude_patterns = [
+    "*.log",
+    "**/__pycache__/**",
+    "**/*.pyc",
+    "**/*.pyo",
+    "**/.pytest_cache/**",
+    "**/.mypy_cache/**",
+    "**/.ruff_cache/**",
+    "**/node_modules/**",
+    "**/.venv/**",
+    "**/venv/**",
+    "**/build/**",
+    "**/dist/**",
+    "**/*.egg-info/**",
+    "**/data/**",
+    "**/models/**",
+    "**/.git/**",
+]
+
+# Patterns to identify test files for enhanced analysis
+test_patterns = [
+    "**/tests/**",
+    "**/test_*.py",
+    "**/*_test.py",
+]
+
+# ============================================================================
+# Python Linting and Formatting - Ruff
+# ============================================================================
+# Ruff is an extremely fast Python linter and code formatter written in Rust.
+# It replaces Flake8, Black, isort, pyupgrade, and more.
+# Configuration: pyproject.toml [tool.ruff] section
+#
+# Note: Qlty auto-detects Ruff from pyproject.toml.
+# To enable Ruff plugin:
+#   qlty plugins enable ruff
+#
+# Ruff configuration is in pyproject.toml [tool.ruff] section.
+# See: https://docs.qlty.sh/analysis/coverage-linters#ruff
+
+# ============================================================================
+# Code Quality Metrics - Maintainability and Complexity
+# ============================================================================
+# Qlty's built-in code smell detection for identifying complex,
+# hard-to-maintain code patterns.
+
+[smells]
+# Mode: comment (add PR comments) vs block (fail CI)
+mode = "comment"
+
+# Boolean logic complexity
+[smells.boolean_logic]
+enabled = true
+threshold = 5  # Max boolean operators in a single expression
+
+# Nested control flow (if/for/while nesting)
+[smells.nested_control_flow]
+enabled = true
+threshold = 4  # Max nesting depth
+
+# Function parameters
+[smells.function_parameters]
+enabled = true
+threshold = 7  # Max parameters per function
+
+# Return statements
+[smells.return_statements]
+enabled = true
+threshold = 5  # Max return statements per function
+
+# File complexity
+[smells.file_complexity]
+enabled = true
+threshold = 500  # Max lines of code per file
+
+# Function complexity (cyclomatic complexity)
+[smells.function_complexity]
+enabled = true
+threshold = 10  # Google/Pylint standard for maintainable functions
+
+# ============================================================================
+# Python-Specific Code Quality Configuration
+# ============================================================================
+# Override smell thresholds for Python to match Google coding standards
+
+[language.python.smells]
+# Slightly more permissive than base threshold for Python's expressive features
+# (decorators, context managers, async/await) but still maintains quality
+function_complexity.threshold = 12
+
+# Python's comprehensions can have complex boolean logic
+boolean_logic.threshold = 6
+
+# Allow larger Python files for models, views, etc.
+file_complexity.threshold = 750
+
+# ============================================================================
+# Note on Security Scanning
+# ============================================================================
+# Security tools are run via pre-commit hooks instead of qlty plugins:
+# - detect-secrets: Secrets detection
+# - bandit: Python security linter (via pyproject.toml [tool.bandit])
+# - safety: Dependency vulnerability scanning
+#
+# This approach is more reliable as qlty plugin availability varies.
+# See .pre-commit-config.yaml for the full security tool configuration.
+
+# ============================================================================
+# Documentation and Maintenance
+# ============================================================================
+# This configuration is maintained as part of the project template.
+#
+# To update plugins:
+#   qlty plugins update
+#
+# To see the full merged configuration:
+#   qlty config show
+#
+# To validate this configuration:
+#   qlty config validate
+#
+# ============================================================================
+# Duplication Detection
+# ============================================================================
+# Duplicate code detection is handled by the smells feature (mode="comment" above).
+# Note: CPD (Copy-Paste Detector) is not available as a qlty plugin.
+
+# For more information:
+#   https://docs.qlty.sh/qlty-toml

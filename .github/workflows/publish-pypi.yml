@@ -1,0 +1,28 @@
+# Publish to PyPI - Calls Org-Level Reusable Workflow
+# This is a lightweight caller workflow that invokes the organization's
+# shared PyPI publishing workflow with OIDC trusted publishing.
+name: Publish to PyPI
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      test-pypi:
+        description: 'Publish to Test PyPI instead of PyPI'
+        type: boolean
+        required: false
+        default: false
+
+jobs:
+  publish:
+    name: Publish Package
+    uses: ByronWilliamsCPA/.github/.github/workflows/python-publish-pypi.yml@main
+    with:
+      python-version: '3.12'
+      package-name: 'mtg-ai'
+      test-pypi: ${{ github.event.inputs.test-pypi || false }}
+
+permissions:
+  contents: read
+  id-token: write  # Required for OIDC trusted publishing
