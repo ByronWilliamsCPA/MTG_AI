@@ -28,17 +28,11 @@ jobs:
   # ==========================================================================
   core-validation:
     name: Core Validation
-    uses: ByronWilliamsCPA/.github/.github/workflows/python-pr-validation.yml@40ff5b5615e786ee0867e1b9e8f21a4735036e63  # main
+    uses: ByronWilliamsCPA/.github/.github/workflows/python-ci.yml@40ff5b5615e786ee0867e1b9e8f21a4735036e63  # main
     with:
       python-version: '3.12'
       source-directory: 'src'
       test-directory: 'tests'
-      require-tests: true
-      require-conventional-commits: true
-      require-description: true
-      min-description-length: 50
-      check-breaking-changes: true
-      add-size-labels: true
       coverage-threshold: 80
     secrets: inherit
 
