@@ -1,8 +1,7 @@
 # PR Validation for MTG AI
-# Comprehensive pull request validation using org-level workflow plus additional checks.
-#
-# This workflow calls the org-level PR validation workflow and adds supplementary
-# checks for dead code detection, changelog enforcement, and documentation links.
+# Supplementary PR checks: dead code detection, changelog enforcement, and
+# documentation link validation. Python tests, linting, and type checking
+# are handled by ci.yml which runs on every push to the PR branch.
 name: PR Validation
 
 on:
@@ -24,20 +23,8 @@ permissions:
 
 jobs:
   # ==========================================================================
-  # Org-Level PR Validation (Core Checks)
-  # ==========================================================================
-  core-validation:
-    name: Core Validation
-    uses: ByronWilliamsCPA/.github/.github/workflows/python-ci.yml@40ff5b5615e786ee0867e1b9e8f21a4735036e63  # main
-    with:
-      python-version: '3.12'
-      source-directory: 'src'
-      test-directory: 'tests'
-      coverage-threshold: 80
-    secrets: inherit
-
-  # ==========================================================================
-  # Additional Checks (Template-Specific)
+  # PR-Specific Checks
+  # (Python tests, linting, and type checking are in ci.yml)
   # ==========================================================================
 
   # Dead Code Detection with Vulture
@@ -163,19 +150,13 @@ jobs:
     name: Dependency & Standards Validation
     runs-on: ubuntu-latest
     timeout-minutes: 10
-    needs: [core-validation, dead-code, changelog, link-check]
+    needs: [dead-code, changelog, link-check]
     if: always()
     steps:
       - name: Check validation results
         run: |
           echo "## Dependency & Standards Validation" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-
-          if [ "${{ needs.core-validation.result }}" == "success" ]; then
-            echo "✅ Core Validation: Passed" >> $GITHUB_STEP_SUMMARY
-          else
-            echo "❌ Core Validation: ${{ needs.core-validation.result }}" >> $GITHUB_STEP_SUMMARY
-          fi
 
           if [ "${{ needs.dead-code.result }}" == "success" ]; then
             echo "✅ Dead Code Check: Passed" >> $GITHUB_STEP_SUMMARY
@@ -195,12 +176,5 @@ jobs:
           else
             echo "⚠️ Link Check: ${{ needs.link-check.result }}" >> $GITHUB_STEP_SUMMARY
           fi
-          # Fail if core validation failed
-          if [ "${{ needs.core-validation.result }}" == "failure" ]; then
-            echo ""
-            echo "❌ Core validation checks failed. Please review and fix issues." >> $GITHUB_STEP_SUMMARY
-            exit 1
-          fi
-
           echo ""
-          echo "✅ All validation checks passed!" >> $GITHUB_STEP_SUMMARY
+          echo "✅ All PR validation checks passed!" >> $GITHUB_STEP_SUMMARY
