@@ -1,4 +1,14 @@
-# MTG_AI Design: Competitive Commander (cEDH) Deck-Critique Assistant
+---
+schema_type: common
+title: "MTG_AI Design: Competitive Commander (cEDH) Deck-Critique Assistant"
+description: "Approved brainstorming spec for the MTG_AI competitive Commander deck-critique assistant."
+status: published
+owner: core-maintainer
+purpose: "Capture the approved brainstorming design that the MTG_AI implementation plan is generated from."
+tags:
+  - specifications
+  - research
+---
 
 > **Status**: Approved (brainstorming) | **Date**: 2026-05-31 | **Owner**: Byron Williams
 >
