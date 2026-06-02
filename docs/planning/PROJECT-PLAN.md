@@ -431,7 +431,7 @@ Traced to [roadmap.md Phase 2 deliverables](./roadmap.md):
 From [roadmap.md](./roadmap.md):
 
 - Identical inputs and rules-version yield identical scorecards.
-- > 95% of cards auto-resolve on import; unresolved are surfaced, not guessed.
+- More than 95% of cards auto-resolve on import; unresolved are surfaced, not guessed.
 - Bracket agreement >= 90% vs Commander Spellbook `estimate-bracket` on a labeled set.
 - Review API p95 < 5s.
 - Cross-user access denied and tested.
@@ -705,8 +705,8 @@ CI
 - [ADR-002: Layered Data Model](./adr/adr-002-data-model.md)
 - [ADR-003: Deterministic Scorecard Engine](./adr/adr-003-engine-approach.md)
 - [ADR Index](./adr/README.md)
-- [Contributing Guide](../../CONTRIBUTING.md)
-- [Security Policy](../../SECURITY.md)
+- [Contributing Guide](https://github.com/ByronWilliamsCPA/MTG_AI/blob/main/CONTRIBUTING.md)
+- [Security Policy](https://github.com/ByronWilliamsCPA/MTG_AI/blob/main/SECURITY.md)
 
 ---
 

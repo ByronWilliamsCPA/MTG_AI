@@ -128,7 +128,7 @@ See [adr-003-engine-approach.md](./adr/adr-003-engine-approach.md).
 ### Success Criteria
 
 - Identical inputs and rules-version yield identical scorecards.
-- > 95% of cards auto-resolve on import; unresolved are surfaced, not guessed.
+- More than 95% of cards auto-resolve on import; unresolved are surfaced, not guessed.
 - Bracket agreement >= 90% vs Commander Spellbook `estimate-bracket` on a labeled
   set; review API p95 < 5s; cross-user access denied.
 
@@ -224,4 +224,4 @@ A feature is complete when:
 
 - [Project Vision](./project-vision.md)
 - [Technical Spec](./tech-spec.md)
-- [Architecture Decisions](./adr/)
+- [Architecture Decisions](./adr/README.md)

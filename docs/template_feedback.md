@@ -115,8 +115,8 @@ the template, or use a value that doesn't contain colons.
 - **Category**: Tooling
 - **Discovered**: 2026-06-01
 
-**Issue**: The `no-em-dash` hook added by the compliance system uses `entry: "—"`
-(the em-dash character itself). Because the hook's own definition in
+**Issue**: The `no-em-dash` hook added by the compliance system sets its `entry`
+to the em-dash character (U+2014) itself. Because the hook's own definition in
 `.pre-commit-config.yaml` contains this character, the hook flags its own config
 file on every run unless `.pre-commit-config.yaml` is in the exclude list.
 

@@ -360,5 +360,5 @@ Coverage: 80% overall, 90% on the critical `rules` and `scorecard` paths.
 ## Related Documents
 
 - [Project Vision](./project-vision.md)
-- [Architecture Decisions](./adr/)
+- [Architecture Decisions](./adr/README.md)
 - [Development Roadmap](./roadmap.md)

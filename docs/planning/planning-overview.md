@@ -34,10 +34,10 @@ This directory contains the essential planning documents for MTG AI.
 
 | Document | Purpose | Status |
 |----------|---------|--------|
-| [project-vision.md](./project-vision.md) | What & Why | Awaiting Generation |
-| [tech-spec.md](./tech-spec.md) | How to build | Awaiting Generation |
-| [roadmap.md](./roadmap.md) | Implementation plan | Awaiting Generation |
-| [adr/](./adr/) | Architecture decisions | Awaiting Generation |
+| [project-vision.md](./project-vision.md) | What & Why | Complete |
+| [tech-spec.md](./tech-spec.md) | How to build | Complete |
+| [roadmap.md](./roadmap.md) | Implementation plan | Complete |
+| [adr/](./adr/README.md) | Architecture decisions | Complete (ADR-001..003) |
 
 ## Using Documents During Development
 

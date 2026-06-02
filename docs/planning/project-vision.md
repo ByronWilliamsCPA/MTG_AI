@@ -147,6 +147,6 @@ you can tune toward a target power level without illegal or unaffordable picks.
 
 ## Related Documents
 
-- [Architecture Decisions](./adr/)
+- [Architecture Decisions](./adr/README.md)
 - [Technical Spec](./tech-spec.md)
 - [Roadmap](./roadmap.md)
