@@ -25,7 +25,9 @@ ADRs document significant architectural decisions along with their context and c
 
 | ADR | Title | Status | Date |
 |-----|-------|--------|------|
-| *No ADRs yet* | Generate with `/plan` command | - | - |
+| [ADR-001](./adr-001-initial-architecture.md) | Split-Service Architecture with a Shared Single-Writer Database | Accepted (amended) | 2026-06-01 |
+| [ADR-002](./adr-002-data-model.md) | Layered Data Model with Reuse-First Ingestion | Accepted | 2026-06-01 |
+| [ADR-003](./adr-003-engine-approach.md) | Deterministic Scorecard Engine, LLM for Explanation | Accepted | 2026-06-01 |
 
 ## Creating ADRs
 
