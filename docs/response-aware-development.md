@@ -1,4 +1,14 @@
-# Response-Aware Development (RAD)
+---
+title: "Response-Aware Development (RAD)"
+schema_type: common
+status: published
+owner: core-maintainer
+purpose: "Point to the canonical RAD tagging standards documented in CLAUDE.md."
+tags:
+  - development
+  - reference
+  - quality
+---
 
 > **Status**: Stub | See project `CLAUDE.md` for full inline RAD tagging standards.
 
