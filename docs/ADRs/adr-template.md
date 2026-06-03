@@ -1,12 +1,12 @@
 ---
-schema_type: adr
+schema_type: planning
 title: "ADR-NNN: Short Descriptive Title of the Decision"
 description: "Brief one-sentence description of what decision this ADR documents."
 tags:
   - architecture
   - decisions
   - adr
-status: proposed
+status: draft
 owner: core-maintainer
 component: Strategy
 source: "ADR template"

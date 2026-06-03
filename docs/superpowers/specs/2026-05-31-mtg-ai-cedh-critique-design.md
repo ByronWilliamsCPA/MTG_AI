@@ -1,9 +1,26 @@
-# MTG_AI Design: Competitive Commander (cEDH) Deck-Critique Assistant
+---
+schema_type: common
+title: "MTG_AI Design: Competitive Commander (cEDH) Deck-Critique Assistant"
+description: "Approved brainstorming spec for the MTG_AI competitive Commander deck-critique assistant."
+status: published
+owner: core-maintainer
+purpose: "Capture the approved brainstorming design that the MTG_AI implementation plan is generated from."
+tags:
+  - specifications
+  - research
+---
 
 > **Status**: Approved (brainstorming) | **Date**: 2026-05-31 | **Owner**: Byron Williams
 >
 > This spec is the approved output of the brainstorming phase. The implementation
 > plan is generated from it via the writing-plans workflow.
+>
+> **Superseded (2026-06-01):** This brainstorming spec predates the v2 re-scope.
+> Sections describing Retrieval-Augmented Generation, local embeddings, and
+> `pgvector` reflect the original v1 design. The architecture now being built is
+> deterministic-scorecard-first with embeddings and RAG deferred to v2; the LLM is
+> explanation-only behind a swappable interface. See the current
+> [v2 planning set](../../planning/PROJECT-PLAN.md) for what is being implemented.
 
 ## 1. Overview
 

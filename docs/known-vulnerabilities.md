@@ -1,4 +1,14 @@
-# Known Vulnerabilities
+---
+title: "Known Vulnerabilities"
+schema_type: common
+status: published
+owner: core-maintainer
+purpose: "Track CVEs and security advisories that cannot be immediately remediated."
+tags:
+  - security
+  - compliance
+  - quality
+---
 
 This document tracks CVEs and security advisories that have been identified but cannot
 be immediately remediated. Entries must be reviewed within 60 days of the Discovered
