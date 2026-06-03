@@ -6,13 +6,13 @@
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width,initial-scale=1">
       
-        <meta name="description" content="Approved brainstorming spec for the MTG_AI competitive Commander deck-critique assistant.">
+        <meta name="description" content="Self-hosted competitive Commander (cEDH) deck-critique assistant: RAG over Scryfall/MTGJSON/meta data with a deterministic rules engine and a swappable generation backend.">
       
       
         <meta name="author" content="Byron Williams">
       
       
-        <link rel="canonical" href="https://MTG_AI.readthedocs.io/superpowers/specs/2026-05-31-mtg-ai-cedh-critique-design/">
+        <link rel="canonical" href="https://MTG_AI.readthedocs.io/planning/adr/adr-001-initial-architecture/">
       
       
       
@@ -25,7 +25,7 @@
     
     
       
-        <title>MTG_AI Design: Competitive Commander (cEDH) Deck-Critique Assistant - MTG AI</title>
+        <title>ADR-001: Split-Service Architecture with a Shared Single-Writer Database - MTG AI</title>
       
     
     
@@ -88,7 +88,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#1-overview" class="md-skip">
+        <a href="#tldr" class="md-skip">
           Skip to content
         </a>
       
@@ -122,7 +122,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              MTG_AI Design: Competitive Commander (cEDH) Deck-Critique Assistant
+              ADR-001: Split-Service Architecture with a Shared Single-Writer Database
             
           </span>
         </div>
@@ -1099,10 +1099,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#1-overview" class="md-nav__link">
+  <a href="#tldr" class="md-nav__link">
     <span class="md-ellipsis">
       
-        1. Overview
+        TL;DR
       
     </span>
   </a>
@@ -1110,98 +1110,255 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#2-goals-and-non-goals" class="md-nav__link">
+  <a href="#context" class="md-nav__link">
     <span class="md-ellipsis">
       
-        2. Goals and Non-Goals
+        Context
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Context">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#problem" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Problem
       
     </span>
   </a>
   
 </li>
-      
-        <li class="md-nav__item">
-  <a href="#3-architecture-approach-b-split-services" class="md-nav__link">
+        
+          <li class="md-nav__item">
+  <a href="#constraints" class="md-nav__link">
     <span class="md-ellipsis">
       
-        3. Architecture (Approach B: split services)
+        Constraints
       
     </span>
   </a>
   
 </li>
-      
-        <li class="md-nav__item">
-  <a href="#4-components-and-boundaries" class="md-nav__link">
+        
+          <li class="md-nav__item">
+  <a href="#significance" class="md-nav__link">
     <span class="md-ellipsis">
       
-        4. Components and Boundaries
+        Significance
       
     </span>
   </a>
   
 </li>
+        
+      </ul>
+    </nav>
+  
+</li>
       
         <li class="md-nav__item">
-  <a href="#5-data-flow" class="md-nav__link">
+  <a href="#decision" class="md-nav__link">
     <span class="md-ellipsis">
       
-        5. Data Flow
+        Decision
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Decision">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#rationale" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Rationale
       
     </span>
   </a>
   
 </li>
+        
+      </ul>
+    </nav>
+  
+</li>
       
         <li class="md-nav__item">
-  <a href="#6-error-handling-and-failure-modes" class="md-nav__link">
+  <a href="#options-considered" class="md-nav__link">
     <span class="md-ellipsis">
       
-        6. Error Handling and Failure Modes
+        Options Considered
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Options Considered">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#option-1-split-services-shared-single-writer-postgres-chosen" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Option 1: Split services + shared single-writer Postgres (chosen)
       
     </span>
   </a>
   
 </li>
-      
-        <li class="md-nav__item">
-  <a href="#7-testing-strategy" class="md-nav__link">
+        
+          <li class="md-nav__item">
+  <a href="#option-2-single-monolith" class="md-nav__link">
     <span class="md-ellipsis">
       
-        7. Testing Strategy
+        Option 2: Single monolith
       
     </span>
   </a>
   
 </li>
-      
-        <li class="md-nav__item">
-  <a href="#8-tech-stack" class="md-nav__link">
+        
+          <li class="md-nav__item">
+  <a href="#option-3-microservices-with-a-synchronous-inter-service-api" class="md-nav__link">
     <span class="md-ellipsis">
       
-        8. Tech Stack
+        Option 3: Microservices with a synchronous inter-service API
       
     </span>
   </a>
   
 </li>
+        
+      </ul>
+    </nav>
+  
+</li>
       
         <li class="md-nav__item">
-  <a href="#9-future-phases" class="md-nav__link">
+  <a href="#consequences" class="md-nav__link">
     <span class="md-ellipsis">
       
-        9. Future Phases
+        Consequences
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Consequences">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#positive" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Positive
       
     </span>
   </a>
   
 </li>
-      
-        <li class="md-nav__item">
-  <a href="#10-legal-note" class="md-nav__link">
+        
+          <li class="md-nav__item">
+  <a href="#trade-offs" class="md-nav__link">
     <span class="md-ellipsis">
       
-        10. Legal Note
+        Trade-offs
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#technical-debt" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Technical Debt
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#implementation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Implementation
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Implementation">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#components-affected" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Components Affected
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#testing-strategy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Testing Strategy
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#validation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Validation
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Validation">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#success-criteria" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Success Criteria
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#related" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Related
       
     </span>
   </a>
@@ -1228,354 +1385,140 @@
   
 
 
-  <h1>MTG_AI Design: Competitive Commander (cEDH) Deck-Critique Assistant</h1>
+  <h1>ADR-001: Split-Service Architecture with a Shared Single-Writer Database</h1>
 
 <blockquote>
-<p><strong>Status</strong>: Approved (brainstorming) | <strong>Date</strong>: 2026-05-31 | <strong>Owner</strong>: Byron Williams</p>
-<p>This spec is the approved output of the brainstorming phase. The implementation
-plan is generated from it via the writing-plans workflow.</p>
-<p><strong>Superseded (2026-06-01):</strong> This brainstorming spec predates the v2 re-scope.
-Sections describing Retrieval-Augmented Generation, local embeddings, and
-<code>pgvector</code> reflect the original v1 design. The architecture now being built is
-deterministic-scorecard-first with embeddings and RAG deferred to v2; the LLM is
-explanation-only behind a swappable interface. See the current
-<a href="../../../planning/PROJECT-PLAN/">v2 planning set</a> for what is being implemented.</p>
+<p><strong>Status</strong>: Accepted (amended 2026-06-01 for the v2 re-scope)
+<strong>Date</strong>: 2026-06-01
+<strong>Supersedes</strong>: None</p>
 </blockquote>
-<h2 id="1-overview">1. Overview<a class="headerlink" href="#1-overview" title="Permanent link">&para;</a></h2>
-<p>MTG_AI is a self-hosted assistant that <strong>critiques and upgrades</strong> competitive
-Magic: The Gathering decks. The first and primary workflow: a user imports an
-existing decklist, and MTG_AI analyzes its weaknesses and proposes specific cuts
-and additions with reasoning, anchored to the competitive metagame.</p>
-<p><strong>Format scope</strong>: Commander / EDH first, specifically <strong>competitive Commander
-(cEDH)</strong>. The data model is designed so additional formats (Standard, Pioneer,
-Modern, Pauper) can be added later without re-architecting.</p>
-<p><strong>AI strategy</strong>: Retrieval-Augmented Generation (RAG) now, with an explicit
-swap-point so a fine-tuned generation model can replace the base model in a
-later phase. Every critique is logged with its inputs, retrieved context, and
-the user's accept/reject decisions, which passively accumulates a labeled
-corpus for that future fine-tuning.</p>
-<p><strong>Audience / hosting</strong>: A small private group (the owner plus a few playgroup
-members), self-hosted on a small cloud box via Docker Compose, with light auth.</p>
-<h2 id="2-goals-and-non-goals">2. Goals and Non-Goals<a class="headerlink" href="#2-goals-and-non-goals" title="Permanent link">&para;</a></h2>
-<p><strong>Goals</strong>
-- Import a decklist (Arena / MTGO / plain-text) and produce a trustworthy,
-  legality-correct cEDH critique with reasoning.
-- Never trust the language model with legality: a deterministic rules engine is
-  the source of truth.
-- Keep the system cheap to run for a handful of users.
-- Lay the architectural seam for phase-2 fine-tuning without committing to it now.</p>
-<p><strong>Non-Goals (explicitly out of scope for v1)</strong>
-- Full deck generation from scratch (a possible later workflow; v1 is critique).
-- Public multi-tenant SaaS, billing, or large-scale load.
-- Formats other than Commander/cEDH (data model supports them; v1 does not ship them).
-- Fine-tuning itself (only the data-capture seam is built now).</p>
-<h2 id="3-architecture-approach-b-split-services">3. Architecture (Approach B: split services)<a class="headerlink" href="#3-architecture-approach-b-split-services" title="Permanent link">&para;</a></h2>
-<p>Two independently deployable services plus a frontend, all in one Docker Compose
-stack, communicating through a <strong>shared Postgres database with a single-writer
-rule</strong> rather than a synchronous service-to-service API.</p>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>┌─────────────────────┐     ┌──────────────────────────────────────┐
-</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>│   Frontend (React)  │     │            DATA SERVICE              │
-</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>│   Vite + TS         │     │  (ingestion + embeddings + scoring)  │
-</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>│   - deck import UI  │     │                                      │
-</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>│   - critique view   │     │  ┌────────────┐  scheduled jobs      │
-</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>└──────────┬──────────┘     │  │ ingestion/ │  - Scryfall bulk     │
-</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>           │ HTTPS          │  │            │  - MTGJSON legality  │
-</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>           ▼                │  │  scryfall  │  - meta/cEDH scrape   │
-</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>┌─────────────────────┐     │  │  mtgjson   │                      │
-</span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>│     APP SERVICE     │     │  │  meta      │  ┌────────────┐       │
-</span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>│  (user-facing API)  │     │  └─────┬──────┘  │ embeddings │       │
-</span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>│                     │     │        │         │ (local ST) │       │
-</span><span id="__span-0-13"><a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>│  - auth (light)     │     │        ▼         └─────┬──────┘       │
-</span><span id="__span-0-14"><a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>│  - deck import      │     │   writes cards,        │              │
-</span><span id="__span-0-15"><a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a>│  - rules engine     │     │   legality, meta,      │              │
-</span><span id="__span-0-16"><a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a>│  - rag retrieval    │     │   embeddings ──────────┘              │
-</span><span id="__span-0-17"><a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a>│  - Claude gen       │     └──────────────┬───────────────────────┘
-</span><span id="__span-0-18"><a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a>│         │ reads     │                    │ writes
-</span><span id="__span-0-19"><a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a>└─────────┴───────────┘                    ▼
-</span><span id="__span-0-20"><a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a>          │                 ┌──────────────────────────────────────┐
-</span><span id="__span-0-21"><a id="__codelineno-0-21" name="__codelineno-0-21" href="#__codelineno-0-21"></a>          └────────────────▶│   Postgres + pgvector (shared store) │
-</span><span id="__span-0-22"><a id="__codelineno-0-22" name="__codelineno-0-22" href="#__codelineno-0-22"></a>                            │   cards · decks · legality · meta ·  │
-</span><span id="__span-0-23"><a id="__codelineno-0-23" name="__codelineno-0-23" href="#__codelineno-0-23"></a>                            │   embeddings · users · critique logs │
-</span><span id="__span-0-24"><a id="__codelineno-0-24" name="__codelineno-0-24" href="#__codelineno-0-24"></a>                            └──────────────────────────────────────┘
-</span></code></pre></div>
-<p><strong>Service boundary (single-writer rule)</strong>
-- The <strong>Data Service is the only writer</strong> of card, legality, meta, and embedding
-  tables. It owns and runs the migrations for those tables.
-- The <strong>App Service only reads</strong> those tables, and writes its own tables (users,
-  imported decks, critique logs).
-- The services do <strong>not</strong> call each other synchronously. No inter-service API to
-  version, no network hop on the critique hot path.
-- The single-writer rule is enforced <strong>structurally</strong>: the App Service connects
-  with a <strong>read-only Postgres role</strong> on the Data Service's tables, so the
-  convention becomes a database-level guarantee.</p>
-<p><strong>Vector store</strong>: Postgres + the <code>pgvector</code> extension. Structured data and
-embeddings live in one database, so semantic similarity, the meta competitiveness
-score, and the hard color-identity filter combine in a single SQL query.</p>
-<p><strong>Generation stack</strong>: local <code>sentence-transformers</code> embeddings (no per-card API
-cost; cards are embedded once per set release) and Claude via API for critique
-reasoning, behind a swappable <code>Generator</code> interface.</p>
-<h2 id="4-components-and-boundaries">4. Components and Boundaries<a class="headerlink" href="#4-components-and-boundaries" title="Permanent link">&para;</a></h2>
-<p>Each package has one job, a typed interface, and is testable in isolation.</p>
-<p><strong>Shared schema package (<code>mtg_ai_schema/</code>)</strong>: a small library both services
-depend on: SQLAlchemy models + Alembic migrations for the shared tables. The
-Data Service owns and runs migrations; the App Service imports the models
-read-only. One source of truth for table shapes.</p>
-<p><strong>Data Service packages</strong></p>
-<table>
-<thead>
-<tr>
-<th>Package</th>
-<th>Job</th>
-<th>Interface</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>ingestion/scryfall</code></td>
-<td>Download Scryfall bulk JSON; normalize cards/rulings/prices</td>
-<td><code>sync_cards() -&gt; IngestReport</code></td>
-</tr>
-<tr>
-<td><code>ingestion/mtgjson</code></td>
-<td>Pull format legality + printings</td>
-<td><code>sync_legality() -&gt; IngestReport</code></td>
-</tr>
-<tr>
-<td><code>ingestion/meta</code></td>
-<td>Scrape cEDH lists/staples; compute play-rate</td>
-<td><code>sync_meta() -&gt; IngestReport</code></td>
-</tr>
-<tr>
-<td><code>embeddings</code></td>
-<td>Embed card text locally (sentence-transformers)</td>
-<td><code>embed(texts) -&gt; vectors</code></td>
-</tr>
-<tr>
-<td><code>scoring</code></td>
-<td>Convert meta into a per-card competitiveness signal</td>
-<td><code>score(card) -&gt; float</code></td>
-</tr>
-<tr>
-<td><code>scheduler</code></td>
-<td>Run syncs on a cadence (set-release vs daily)</td>
-<td>container entrypoint</td>
-</tr>
-</tbody>
-</table>
-<p><strong>App Service packages</strong></p>
-<table>
-<thead>
-<tr>
-<th>Package</th>
-<th>Job</th>
-<th>Interface</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>decks/import</code></td>
-<td>Parse Arena/MTGO/text decklists; detect commander</td>
-<td><code>parse(raw) -&gt; Deck</code></td>
-</tr>
-<tr>
-<td><code>rules</code></td>
-<td>Deterministic Commander validator (100-card, singleton, color identity, banlist)</td>
-<td><code>validate(Deck) -&gt; list[Violation]</code></td>
-</tr>
-<tr>
-<td><code>rag/retrieval</code></td>
-<td>Retrieve stronger candidates from pgvector per card role/color</td>
-<td><code>retrieve(Deck) -&gt; Context</code></td>
-</tr>
-<tr>
-<td><code>critique</code></td>
-<td>Orchestrate: build context, call generator, parse, re-validate</td>
-<td><code>critique(Deck) -&gt; Critique</code></td>
-</tr>
-<tr>
-<td><code>generator</code></td>
-<td>Swappable generation backend (Claude now, fine-tuned later)</td>
-<td><code>Generator.generate(prompt) -&gt; str</code></td>
-</tr>
-<tr>
-<td><code>api</code></td>
-<td>FastAPI routes, auth, request/response models</td>
-<td>HTTP</td>
-</tr>
-</tbody>
-</table>
-<p><strong>Two reliability seams</strong>
-1. <code>rules</code> is pure, deterministic, and has zero LLM involvement. Legality is
-   never trusted to the model.
-2. <code>critique</code> re-runs <code>rules</code> on the model's own suggestions before returning
-   them. Illegal suggestions (e.g. an off-color add) are dropped or regenerated.
-   The LLM proposes; deterministic code disposes.</p>
-<h2 id="5-data-flow">5. Data Flow<a class="headerlink" href="#5-data-flow" title="Permanent link">&para;</a></h2>
-<p><strong>Flow A: Ingestion (Data Service, scheduled, no user present)</strong>
-- Set-release cadence: Scryfall bulk + MTGJSON -&gt; normalize -&gt; embed (local) -&gt;
-  upsert cards + vectors.
-- Daily cadence: cEDH meta -&gt; upsert meta + competitiveness scores.
-- Each sync is idempotent (upsert by Scryfall <code>oracle_id</code>); a failed run simply
-  retries on the next cadence. An <code>IngestReport</code> row records counts and status.</p>
-<p><strong>Flow B: Critique request (App Service, hot path)</strong>
-1. User pastes/uploads a decklist in the frontend.
-2. <code>decks/import</code> parses raw text into a <code>Deck</code> (commander detected, cards
-   resolved against the DB).
-3. <code>rules.validate</code> checks Commander legality and surfaces violations (critique
-   still proceeds).
-4. <code>rag.retrieve</code> pulls stronger cEDH candidates and weak spots from pgvector
-   via a single SQL query combining vector similarity, meta score, and a hard
-   color-identity filter (<code>WHERE color_identity &lt;@ commander_identity</code>).
-5. <code>critique</code> assembles a compact context (deck + candidates + meta) and calls
-   <code>generator.generate</code>.
-6. The generator (Claude) returns a structured critique: cuts/adds with reasoning.
-7. <code>critique</code> <strong>re-validates every suggested add</strong> against <code>rules</code> (color
-   identity, singleton, banlist) and drops or regenerates anything illegal.
-8. Persist <code>critique_log</code> (input deck, retrieved context, raw suggestions, final
-   suggestions).
-9. Frontend renders cuts | adds | reasoning, each with accept/reject controls.</p>
-<p><strong>Flow C: Training-data capture (phase-2 seam, passive)</strong>
-Step 8 logs <code>(deck, retrieved context, suggestions)</code>. The frontend accept/reject
-in step 9 appends the label. The fine-tuning corpus accumulates as a column on
-<code>critique_log</code>, with no extra system.</p>
-<h2 id="6-error-handling-and-failure-modes">6. Error Handling and Failure Modes<a class="headerlink" href="#6-error-handling-and-failure-modes" title="Permanent link">&para;</a></h2>
-<p>Guiding principle: <strong>degrade, don't break.</strong> Stale data still serves; a partial
-critique beats an error; unresolved input is surfaced, not guessed. External
-dependencies (four data sources + the LLM API) are tagged per RAD
-"external resources".</p>
-<table>
-<thead>
-<tr>
-<th>Failure</th>
-<th>Where</th>
-<th>Strategy</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>Data source down / rate-limited</td>
-<td><code>ingestion/*</code></td>
-<td>Per-source isolation; idempotent upserts; retry next cadence; <code>IngestReport</code> records failure; stale data keeps serving.</td>
-</tr>
-<tr>
-<td>Source schema/HTML changed</td>
-<td><code>ingestion/meta</code>, <code>mtgjson</code></td>
-<td>Parse into a validated Pydantic model at the boundary; a shape change fails loudly into <code>IngestReport</code> rather than writing garbage.</td>
-</tr>
-<tr>
-<td>Card name won't resolve</td>
-<td><code>decks/import</code></td>
-<td>Fuzzy-match against the card DB; surface unresolved cards to the user; never guess.</td>
-</tr>
-<tr>
-<td>LLM timeout / rate limit</td>
-<td><code>generator</code></td>
-<td>Bounded retry with backoff; per-user rate limit + cost guard.</td>
-</tr>
-<tr>
-<td>LLM malformed/illegal output</td>
-<td><code>critique</code></td>
-<td>Parse failure -&gt; reject + bounded retry; illegal suggestions -&gt; re-validate drops them; after N tries return the valid subset with an honest note.</td>
-</tr>
-<tr>
-<td>App Service writes shared tables</td>
-<td>DB boundary</td>
-<td>Prevented structurally via a read-only Postgres role on the shared tables.</td>
-</tr>
-<tr>
-<td>Embedding model/version drift</td>
-<td><code>embeddings</code></td>
-<td>Store model name + vector dimension; a model change is a migration, not silent index corruption.</td>
-</tr>
-</tbody>
-</table>
-<h2 id="7-testing-strategy">7. Testing Strategy<a class="headerlink" href="#7-testing-strategy" title="Permanent link">&para;</a></h2>
-<p>Correctness-critical parts are pure; expensive/nondeterministic parts sit behind
-interfaces. No live network and no live LLM calls in the test suite.</p>
-<table>
-<thead>
-<tr>
-<th>Layer</th>
-<th>What</th>
-<th>How</th>
-<th>Coverage target</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>rules</code> validator</td>
-<td>Commander legality</td>
-<td>Unit + property-based (Hypothesis); golden legal/illegal decks. <strong>Test-first (TDD).</strong></td>
-<td>90%+ (critical)</td>
-</tr>
-<tr>
-<td><code>decks/import</code></td>
-<td>Parse + fuzzy resolution</td>
-<td>Fixture decklists per format; assert unresolved cards surfaced</td>
-<td>85%+</td>
-</tr>
-<tr>
-<td><code>ingestion/*</code></td>
-<td>Download + normalize</td>
-<td>Recorded fixtures (saved JSON/HTML), never live network; assert Pydantic boundary rejects drift</td>
-<td>80%</td>
-</tr>
-<tr>
-<td><code>rag/retrieval</code></td>
-<td>Combined vector + color + score SQL</td>
-<td>Integration against a seeded throwaway pgvector DB (testcontainers)</td>
-<td>80%</td>
-</tr>
-<tr>
-<td><code>critique</code> + <code>generator</code></td>
-<td>Orchestration + re-validate loop</td>
-<td>Mock the <code>Generator</code>; feed an illegal suggestion and assert step-7 drops it</td>
-<td>85%+</td>
-</tr>
-<tr>
-<td><code>api</code></td>
-<td>Routes, auth, schemas</td>
-<td>FastAPI <code>TestClient</code>; assert cross-user deck isolation</td>
-<td>80%</td>
-</tr>
-<tr>
-<td>Frontend</td>
-<td>Import + critique views</td>
-<td>Vitest component tests; one Playwright happy-path e2e</td>
-<td>key paths</td>
-</tr>
-</tbody>
-</table>
-<p><strong>Eval harness</strong>: a small set of known decks with "obvious" expected cuts/adds.
-Not a unit test, a quality tripwire that detects critique-quality regressions
-across prompt or model changes, and the baseline for measuring whether a phase-2
-fine-tuned model beats RAG-Claude.</p>
-<h2 id="8-tech-stack">8. Tech Stack<a class="headerlink" href="#8-tech-stack" title="Permanent link">&para;</a></h2>
+<h2 id="tldr">TL;DR<a class="headerlink" href="#tldr" title="Permanent link">&para;</a></h2>
+<p>MTG AI runs as two deployable services (app + data) communicating through a
+shared Postgres database under a single-writer rule, isolating heavy scheduled
+ingestion from the user-facing review path without a versioned API.</p>
+<h2 id="context">Context<a class="headerlink" href="#context" title="Permanent link">&para;</a></h2>
+<h3 id="problem">Problem<a class="headerlink" href="#problem" title="Permanent link">&para;</a></h3>
+<p>MTG AI has two workloads with opposite shapes. <strong>Ingestion</strong> is heavy and
+scheduled (Scryfall, MTGJSON, EDHREC, Spellbook, versioned bracket rules) and
+must never block a user. <strong>Review</strong> (score a deck, suggest upgrades) is
+interactive and latency sensitive. Both read the same reference data, so we need
+a topology that keeps ingestion off the hot path while one query combines a
+synergy/meta score with a color-identity filter.</p>
+<h3 id="constraints">Constraints<a class="headerlink" href="#constraints" title="Permanent link">&para;</a></h3>
 <ul>
-<li><strong>Scaffold</strong>: the owner's cookiecutter-python-template (FastAPI API, React+Vite+TS
-  frontend, ML dependencies, SQLAlchemy/Postgres, Docker, pre-commit, CI, OpenSSF
-  baseline), extended with the <code>pgvector</code> extension and the two-service layout.</li>
-<li><strong>Backend</strong>: Python 3.12, FastAPI, SQLAlchemy + Alembic, Pydantic v2.</li>
-<li><strong>Vector store</strong>: Postgres + pgvector.</li>
-<li><strong>Embeddings</strong>: local sentence-transformers.</li>
-<li><strong>Generation</strong>: Claude via API, behind a <code>Generator</code> interface.</li>
-<li><strong>Frontend</strong>: React + Vite + TypeScript.</li>
-<li><strong>Deploy</strong>: Docker Compose (frontend, app service, data service, Postgres).</li>
+<li><strong>Technical</strong>: Self-hosted on one small box (Docker Compose); few users; cheap
+  to run. v1 is deterministic scoring over reused precomputed data; embeddings
+  and RAG are deferred to v2 (see <a href="../adr-003-engine-approach/">ADR-003</a>).</li>
+<li><strong>Business</strong>: Single maintainer; complexity must earn its keep.</li>
 </ul>
-<h2 id="9-future-phases">9. Future Phases<a class="headerlink" href="#9-future-phases" title="Permanent link">&para;</a></h2>
+<h3 id="significance">Significance<a class="headerlink" href="#significance" title="Permanent link">&para;</a></h3>
+<p>Service boundaries and the storage engine are the costliest to reverse.</p>
+<h2 id="decision">Decision<a class="headerlink" href="#decision" title="Permanent link">&para;</a></h2>
+<p><strong>We will split into an app service and a data service that share a single
+Postgres database under a single-writer rule, because it isolates the two
+workloads without a synchronous inter-service API.</strong> The store is
+relational-first; pgvector is added only in v2.</p>
+<h3 id="rationale">Rationale<a class="headerlink" href="#rationale" title="Permanent link">&para;</a></h3>
 <ul>
-<li><strong>Phase 2 (fine-tuning)</strong>: once <code>critique_log</code> has enough labeled examples,
-  train/evaluate a fine-tuned generation model against the eval harness and swap
-  it in behind the <code>Generator</code> interface.</li>
-<li><strong>More formats</strong>: extend the schema and meta ingestion to Standard/Pioneer/
-  Modern/Pauper.</li>
-<li><strong>Deck generation workflow</strong>: build-from-commander, reusing retrieval + rules.</li>
+<li>The data service is the <strong>only writer</strong> of the reference, corpus, and analytics
+  tables and owns their migrations. The app service connects with <strong>one restricted
+  role</strong>: <code>SELECT</code> on those tables (the single-writer rule becomes a database-level
+  guarantee), full DML on its own tables (users, decks, collections, reviews).</li>
+<li>Services never call each other synchronously: no API to version, no network
+  hop, no cascading failure when ingestion is busy.</li>
+<li>One relational store lets a single SQL query combine a synergy/meta score with
+  <code>WHERE color_identity &lt;@ commander_identity</code>; v2 adds vectors in the same store
+  via pgvector, not a second datastore to sync.</li>
 </ul>
-<h2 id="10-legal-note">10. Legal Note<a class="headerlink" href="#10-legal-note" title="Permanent link">&para;</a></h2>
-<p>Card names, text, and imagery are intellectual property of Wizards of the Coast.
-This project consumes data under the source providers' terms (Scryfall, MTGJSON)
-and does not redistribute proprietary assets. The code is MIT-licensed; the data
-is not.</p>
+<h2 id="options-considered">Options Considered<a class="headerlink" href="#options-considered" title="Permanent link">&para;</a></h2>
+<h3 id="option-1-split-services-shared-single-writer-postgres-chosen">Option 1: Split services + shared single-writer Postgres (chosen)<a class="headerlink" href="#option-1-split-services-shared-single-writer-postgres-chosen" title="Permanent link">&para;</a></h3>
+<p><strong>Pros</strong>:</p>
+<ul>
+<li>Workload isolation with no inter-service API to build or version.</li>
+<li>One query joins structured filters and meta/synergy scores (and vectors later).</li>
+<li>Single-writer enforced structurally by DB roles.</li>
+</ul>
+<p><strong>Cons</strong>:</p>
+<ul>
+<li>Shared schema is a coupling point; needs a small shared models package.</li>
+</ul>
+<h3 id="option-2-single-monolith">Option 2: Single monolith<a class="headerlink" href="#option-2-single-monolith" title="Permanent link">&para;</a></h3>
+<p><strong>Pros</strong>:</p>
+<ul>
+<li>Simplest to start; one deployable.</li>
+</ul>
+<p><strong>Cons</strong>:</p>
+<ul>
+<li>Heavy ingestion and the review path share one process; a bulk sync can degrade
+  user requests.</li>
+<li>Harder to schedule the two workloads independently.</li>
+</ul>
+<h3 id="option-3-microservices-with-a-synchronous-inter-service-api">Option 3: Microservices with a synchronous inter-service API<a class="headerlink" href="#option-3-microservices-with-a-synchronous-inter-service-api" title="Permanent link">&para;</a></h3>
+<p><strong>Pros</strong>:</p>
+<ul>
+<li>Strong logical decoupling; independent datastores possible.</li>
+</ul>
+<p><strong>Cons</strong>:</p>
+<ul>
+<li>An API contract to version and keep compatible, plus a network hop and failure
+  mode on the hot path.</li>
+<li>Over-engineered for a few-user, single-box deployment.</li>
+</ul>
+<h2 id="consequences">Consequences<a class="headerlink" href="#consequences" title="Permanent link">&para;</a></h2>
+<h3 id="positive">Positive<a class="headerlink" href="#positive" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Review latency is insulated from ingestion load.</li>
+<li>Combined retrieval (structured filters + meta/synergy) is one SQL statement.</li>
+<li>The restricted role makes accidental cross-writes structurally impossible.</li>
+</ul>
+<h3 id="trade-offs">Trade-offs<a class="headerlink" href="#trade-offs" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Shared table shapes couple the services: mitigated by a small <code>mtg_ai_schema</code>
+  package (SQLAlchemy models + migrations) imported by both.</li>
+<li>Two Alembic lineages would collide on the default <code>alembic_version</code> table:
+  each domain uses its own schema and <code>version_table</code>, so histories never clash.</li>
+<li>A single shared DB is a single point of failure: acceptable at this scale;
+  standard Postgres backups suffice.</li>
+</ul>
+<h3 id="technical-debt">Technical Debt<a class="headerlink" href="#technical-debt" title="Permanent link">&para;</a></h3>
+<ul>
+<li>When embeddings arrive in v2, store the model name and dimension so a model
+  swap is a migration, not silent index corruption.</li>
+</ul>
+<h2 id="implementation">Implementation<a class="headerlink" href="#implementation" title="Permanent link">&para;</a></h2>
+<h3 id="components-affected">Components Affected<a class="headerlink" href="#components-affected" title="Permanent link">&para;</a></h3>
+<ol>
+<li><strong>mtg_ai_schema</strong>: shared package owning the SQLAlchemy models and migrations
+   for the data-owned tables. See <a href="../adr-002-data-model/">ADR-002</a>.</li>
+<li><strong>Data service</strong>: owns ingestion, scoring inputs, scheduler; runs the
+   data-owned migrations; sole writer of shared tables.</li>
+<li><strong>App service</strong>: owns import, rules, scorecard, suggestions, generator
+   (explanation), API; runs its own migrations (separate schema + <code>version_table</code>);
+   reads shared tables only.</li>
+<li><strong>Postgres</strong>: relational-first; two roles (data-service writer; app-service
+   role with <code>SELECT</code> on data tables, full DML on app tables). pgvector in v2.</li>
+</ol>
+<h3 id="testing-strategy">Testing Strategy<a class="headerlink" href="#testing-strategy" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Integration against a seeded throwaway Postgres (testcontainers) proves the
+  combined retrieval query and that the app role cannot write shared tables.</li>
+</ul>
+<h2 id="validation">Validation<a class="headerlink" href="#validation" title="Permanent link">&para;</a></h2>
+<h3 id="success-criteria">Success Criteria<a class="headerlink" href="#success-criteria" title="Permanent link">&para;</a></h3>
+<ul class="task-list">
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> App service connection cannot write shared tables (role-enforced).</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Combined retrieval query returns color-legal candidates in one statement.</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> An ingestion run does not raise review p95 latency above target.</li>
+</ul>
+<p>Revisit at the end of Phase 2, and if scale grows beyond one box.</p>
+<h2 id="related">Related<a class="headerlink" href="#related" title="Permanent link">&para;</a></h2>
+<ul>
+<li><a href="../../project-vision/">Project Vision</a></li>
+<li><a href="../adr-002-data-model/">ADR-002: Data Model</a></li>
+<li><a href="../adr-003-engine-approach/">ADR-003: Engine Approach</a></li>
+<li><a href="../../tech-spec/">Technical Spec</a></li>
+<li><a href="../../roadmap/">Roadmap</a></li>
+</ul>
 
 
 
@@ -1608,7 +1551,7 @@ is not.</p>
     <span class="md-icon" title="Created">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M14.47 15.08 11 13V7h1.5v5.25l3.08 1.83c-.41.28-.79.62-1.11 1m-1.39 4.84c-.36.05-.71.08-1.08.08-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8c0 .37-.03.72-.08 1.08.69.1 1.33.32 1.92.64.1-.56.16-1.13.16-1.72 0-5.5-4.5-10-10-10S2 6.5 2 12s4.47 10 10 10c.59 0 1.16-.06 1.72-.16-.32-.59-.54-1.23-.64-1.92M18 15v3h-3v2h3v3h2v-3h3v-2h-3v-3z"/></svg>
     </span>
-    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="June 1, 2026 00:43:47 UTC">June 1, 2026</span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="June 3, 2026 01:08:36 UTC">June 3, 2026</span>
   </span>
 
     

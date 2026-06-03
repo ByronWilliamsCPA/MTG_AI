@@ -1118,6 +1118,89 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="Feedback Items">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#markdownlintjson-trips-on-multi-phase-planning-docs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        .markdownlint.json trips on multi-phase planning docs
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#claudesettingsjson-bash-permission-colon-syntax-is-wrong" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        .claude/settings.json Bash permission colon syntax is wrong
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#mkdocsyml-site_description-not-quoted-breaks-yaml-parse" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        mkdocs.yml site_description not quoted, breaks YAML parse
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#no-em-dash-pre-commit-hook-self-flags-its-own-config-file" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        no-em-dash pre-commit hook self-flags its own config file
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pr-validationyml-references-deprecated-org-workflow-python-pr-validationyml" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        pr-validation.yml references deprecated org workflow python-pr-validation.yml
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#validate-front-matter-hook-scans-the-whole-docs-tree-so-latent-failures-block-unrelated-commits" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        validate-front-matter hook scans the whole docs/ tree, so latent failures block unrelated commits
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#front-matter-schema-lacks-adr-statuses-and-a-reportlessons-learned-doc-type" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Front-matter schema lacks ADR statuses and a report/lessons-learned doc type
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -1179,7 +1262,138 @@
 <h2 id="feedback-items">Feedback Items<a class="headerlink" href="#feedback-items" title="Permanent link">&para;</a></h2>
 <!-- Add your feedback below this line -->
 
-<p><em>No feedback items yet. Add issues as they are discovered.</em></p>
+<h3 id="markdownlintjson-trips-on-multi-phase-planning-docs"><code>.markdownlint.json</code> trips on multi-phase planning docs<a class="headerlink" href="#markdownlintjson-trips-on-multi-phase-planning-docs" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Priority</strong>: Low</li>
+<li><strong>Category</strong>: Configuration</li>
+<li><strong>Discovered</strong>: 2026-06-01</li>
+</ul>
+<p><strong>Issue</strong>: The shipped <code>.markdownlint.json</code> leaves <code>MD024</code> (no-duplicate-heading)
+at its default and does not address <code>MD060</code> (table-column-style). The planning
+documents produced by the <code>/plan</code> workflow (roadmap, ADRs) intentionally repeat
+sibling subheadings such as <code>### Objective</code> and <code>### Deliverables</code> under each
+phase, and use standard GFM tables. This generates dozens of editor warnings on
+freshly generated, valid docs.</p>
+<p><strong>Context</strong>: Discovered while generating <code>docs/planning/</code> documents via <code>/plan</code>.
+Confirmed markdownlint is not part of the enforced gate (no pre-commit hook, not
+enabled in qlty), so the warnings are IDE-only but still noisy.</p>
+<p><strong>Suggested Fix</strong>: Ship <code>"MD024": { "siblings_only": true }</code> and <code>"MD060": false</code>
+in the template's <code>.markdownlint.json</code>, so the planning/ADR templates lint clean
+out of the box.</p>
+<p><strong>Affected Files</strong>: <code>.markdownlint.json</code></p>
+<hr />
+<h3 id="claudesettingsjson-bash-permission-colon-syntax-is-wrong"><code>.claude/settings.json</code> Bash permission colon syntax is wrong<a class="headerlink" href="#claudesettingsjson-bash-permission-colon-syntax-is-wrong" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Priority</strong>: High</li>
+<li><strong>Category</strong>: Configuration</li>
+<li><strong>Discovered</strong>: 2026-06-01</li>
+</ul>
+<p><strong>Issue</strong>: The template generates <code>"Bash(cmd:*)"</code> entries in <code>.claude/settings.json</code>
+permission allow lists. Colon syntax is the MCP tool format; shell commands require
+space syntax <code>"Bash(cmd *)"</code>. All generated entries are silently inert at runtime,
+meaning every shell command still prompts for permission despite being listed.</p>
+<p><strong>Context</strong>: Discovered during compliance audit PR #3 review via <code>pr-review</code> skill.
+All 6 generated entries used colon syntax and were flagged as a Critical finding.</p>
+<p><strong>Suggested Fix</strong>: Change the template's <code>.claude/settings.json</code> allow entries from
+<code>"Bash(cmd:*)"</code> to <code>"Bash(cmd *)"</code> (space separator, not colon).</p>
+<p><strong>Affected Files</strong>: <code>.claude/settings.json</code></p>
+<hr />
+<h3 id="mkdocsyml-site_description-not-quoted-breaks-yaml-parse"><code>mkdocs.yml</code> <code>site_description</code> not quoted, breaks YAML parse<a class="headerlink" href="#mkdocsyml-site_description-not-quoted-breaks-yaml-parse" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Priority</strong>: High</li>
+<li><strong>Category</strong>: Configuration</li>
+<li><strong>Discovered</strong>: 2026-06-01</li>
+</ul>
+<p><strong>Issue</strong>: The generated <code>mkdocs.yml</code> has <code>site_description</code> with an unquoted value
+containing a colon-space sequence (<code>assistant: RAG over...</code>). YAML interprets the
+unquoted colon-space as a mapping separator, producing a parse error at build time:
+"mapping values are not allowed here, line 6, column 83".</p>
+<p><strong>Context</strong>: Discovered when the Documentation CI check failed with a YAML parse
+error. The mkdocs.yml shipped by the template was the immediate cause.</p>
+<p><strong>Suggested Fix</strong>: Wrap the default <code>site_description</code> value in double quotes in
+the template, or use a value that doesn't contain colons.</p>
+<p><strong>Affected Files</strong>: <code>mkdocs.yml</code></p>
+<hr />
+<h3 id="no-em-dash-pre-commit-hook-self-flags-its-own-config-file"><code>no-em-dash</code> pre-commit hook self-flags its own config file<a class="headerlink" href="#no-em-dash-pre-commit-hook-self-flags-its-own-config-file" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Priority</strong>: Medium</li>
+<li><strong>Category</strong>: Tooling</li>
+<li><strong>Discovered</strong>: 2026-06-01</li>
+</ul>
+<p><strong>Issue</strong>: The <code>no-em-dash</code> hook added by the compliance system sets its <code>entry</code>
+to the em-dash character (U+2014) itself. Because the hook's own definition in
+<code>.pre-commit-config.yaml</code> contains this character, the hook flags its own config
+file on every run unless <code>.pre-commit-config.yaml</code> is in the exclude list.</p>
+<p><strong>Context</strong>: Discovered during pr-fix session for compliance PR #3. Running
+<code>pre-commit run --all-files</code> would have failed on <code>.pre-commit-config.yaml</code>.</p>
+<p><strong>Suggested Fix</strong>: Add <code>\.pre-commit-config\.yaml</code> to the no-em-dash hook's
+<code>exclude</code> pattern. Also check that any CLAUDE.md generated by the template that
+documents the em-dash rule uses <code>(U+2014)</code> instead of the literal em-dash character.</p>
+<p><strong>Affected Files</strong>: <code>.pre-commit-config.yaml</code></p>
+<hr />
+<h3 id="pr-validationyml-references-deprecated-org-workflow-python-pr-validationyml"><code>pr-validation.yml</code> references deprecated org workflow <code>python-pr-validation.yml</code><a class="headerlink" href="#pr-validationyml-references-deprecated-org-workflow-python-pr-validationyml" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Priority</strong>: High</li>
+<li><strong>Category</strong>: CI/CD</li>
+<li><strong>Discovered</strong>: 2026-06-01</li>
+</ul>
+<p><strong>Issue</strong>: The template generates a <code>pr-validation.yml</code> with a <code>core-validation</code> job
+that calls <code>python-pr-validation.yml</code> from the org <code>.github</code> repo. That workflow has
+been deprecated and replaced with a migration stub that intentionally exits 1 with
+the message "Migrate to python-ci.yml". The SHA pinning by the compliance system
+locked in the deprecated commit, causing every PR to fail with "Core Validation /
+This workflow is removed".</p>
+<p>Additionally, <code>python-ci.yml</code> (the replacement) uses <code>--no-build</code> during install,
+which is incompatible with editable installs. The <code>core-validation</code> call provides
+duplicate value since <code>ci.yml</code> already runs Python tests and quality checks.</p>
+<p><strong>Context</strong>: Discovered during compliance audit PR #3 review and subsequent pr-fix.
+Two fix attempts were needed: first migrating to <code>python-ci.yml</code>, then removing
+the job entirely when the install compatibility issue surfaced.</p>
+<p><strong>Suggested Fix</strong>: Remove the <code>core-validation</code> reusable workflow call from the
+template's <code>pr-validation.yml</code>. Keep it focused on PR-specific checks (changelog,
+dead code, link check). Python quality checks belong in <code>ci.yml</code>.</p>
+<p><strong>Affected Files</strong>: <code>.github/workflows/pr-validation.yml</code></p>
+<hr />
+<h3 id="validate-front-matter-hook-scans-the-whole-docs-tree-so-latent-failures-block-unrelated-commits"><code>validate-front-matter</code> hook scans the whole <code>docs/</code> tree, so latent failures block unrelated commits<a class="headerlink" href="#validate-front-matter-hook-scans-the-whole-docs-tree-so-latent-failures-block-unrelated-commits" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Priority</strong>: High</li>
+</ul>
+<p><strong>Issue</strong>: The <code>validate-front-matter</code> pre-commit hook sets <code>pass_filenames: false</code>
+and runs <code>python tools/validate_front_matter.py docs</code>, so it re-validates the entire
+<code>docs/</code> tree on every trigger instead of only the staged files. The shipped
+<code>docs/ADRs/adr-template.md</code> (<code>schema_type: adr</code>) and the brainstorming spec under
+<code>docs/superpowers/specs/</code> (no front matter) are both non-compliant with the validator
+out of the box, but the failure stays latent because the hook only triggers on a
+non-<code>planning</code> <code>docs/*.md</code> change. The first unrelated doc commit surfaces all of
+them at once and is blocked by files the author never touched.</p>
+<p><strong>Context</strong>: Committing two new docs (a compliance report and template feedback)
+failed the hook with errors pointing at <code>adr-template.md</code> and the superpowers spec,
+neither of which was staged.</p>
+<p><strong>Suggested Fix</strong>: Either honor staged filenames (<code>pass_filenames: true</code> and validate
+only the passed paths), or ship the template's own <code>docs/</code> files already compliant
+with the validator. A hook should not fail on files outside the current change set.</p>
+<p><strong>Affected Files</strong>: <code>.pre-commit-config.yaml</code>, <code>tools/validate_front_matter.py</code>,
+<code>docs/ADRs/adr-template.md</code>, <code>docs/superpowers/specs/*.md</code></p>
+<hr />
+<h3 id="front-matter-schema-lacks-adr-statuses-and-a-reportlessons-learned-doc-type">Front-matter schema lacks ADR statuses and a report/lessons-learned doc type<a class="headerlink" href="#front-matter-schema-lacks-adr-statuses-and-a-reportlessons-learned-doc-type" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Priority</strong>: Medium</li>
+</ul>
+<p><strong>Issue</strong>: The discriminated-union schema in <code>tools/frontmatter_contract/models.py</code>
+allows only <code>status</code> values <code>draft</code>, <code>in-review</code>, <code>published</code>, and <code>schema_type</code>
+values <code>script</code>, <code>knowledge</code>, <code>planning</code>, <code>common</code>. The shipped <code>adr-template.md</code>
+uses <code>status: proposed</code> (a standard ADR lifecycle state) and <code>schema_type: adr</code>,
+both rejected by the schema. Separately, <code>CommonFM</code> sets <code>ConfigDict(extra="forbid")</code>,
+so generated report artifacts (for example compliance <code>lessons-learned</code> files carrying
+<code>session_date</code>, <code>repo</code>, <code>manifest_version</code>) cannot be made compliant without stripping
+their metadata into the body.</p>
+<p><strong>Context</strong>: Found while making <code>adr-template.md</code>, a compliance retrospective, and a
+brainstorming spec pass the validator. The ADR template ships failing its own schema.</p>
+<p><strong>Suggested Fix</strong>: Add ADR lifecycle states (<code>proposed</code>, <code>accepted</code>, <code>superseded</code>,
+<code>deprecated</code>) to the <code>status</code> literal, add an <code>adr</code> (or <code>report</code>) <code>schema_type</code> variant,
+and either relax <code>extra="forbid"</code> for report types or exclude generated report trees
+(like <code>docs/planning/</code> is already excluded).</p>
+<p><strong>Affected Files</strong>: <code>tools/frontmatter_contract/models.py</code>, <code>docs/ADRs/adr-template.md</code></p>
 <hr />
 <h2 id="submitting-feedback">Submitting Feedback<a class="headerlink" href="#submitting-feedback" title="Permanent link">&para;</a></h2>
 <p>Once you've collected feedback, you can:</p>
@@ -1211,7 +1425,7 @@
     <span class="md-icon" title="Last update">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"/></svg>
     </span>
-    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="June 1, 2026 00:57:16 UTC">June 1, 2026</span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="June 3, 2026 01:08:36 UTC">June 3, 2026</span>
   </span>
 
     
