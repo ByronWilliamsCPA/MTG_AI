@@ -47,6 +47,22 @@
       "schedule": ["every weekend"]
     },
     {
+      "description": "Group npm dependencies",
+      "matchManagers": ["npm"],
+      "matchDepTypes": ["dependencies"],
+      "groupName": "npm dependencies",
+      "automerge": false,
+      "schedule": ["every weekend"]
+    },
+    {
+      "description": "Group npm dev dependencies",
+      "matchManagers": ["npm"],
+      "matchDepTypes": ["devDependencies"],
+      "groupName": "npm dev dependencies",
+      "automerge": false,
+      "schedule": ["every weekend"]
+    },
+    {
       "description": "Auto-merge GitHub Actions minor/patch updates",
       "matchManagers": ["github-actions"],
       "matchUpdateTypes": ["minor", "patch"],
@@ -62,7 +78,7 @@
     },
     {
       "description": "Security updates - high priority",
-      "matchDatasources": ["pypi", "github-actions"],
+      "matchDatasources": ["pypi", "npm", "github-actions"],
       "vulnerabilityAlerts": {
         "enabled": true
       },
