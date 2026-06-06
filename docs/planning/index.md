@@ -28,3 +28,15 @@ Claude Code skill. Together they form the complete project blueprint for
 
 See the [Project Setup Guide](../PROJECT_SETUP.md#project-planning-with-claude-code)
 for instructions on generating these documents.
+
+## Architecture Decision Records
+
+Significant decisions are recorded in [adr/](adr/README.md).
+
+## Reference Notes
+
+Background research and lessons that inform the decisions above.
+
+| Note | Purpose |
+|------|---------|
+| [fluiddocs-deck-builder-review.md](fluiddocs-deck-builder-review.md) | Lessons from the FluidDocs deck-builder, mapped to ADR-004/005/006 |
