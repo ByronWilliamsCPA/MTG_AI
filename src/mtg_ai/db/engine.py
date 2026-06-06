@@ -12,6 +12,7 @@ each new SQLite connection, so the same metadata resolves on both backends.
 
 from __future__ import annotations
 
+import threading
 from typing import TYPE_CHECKING, Any
 
 from sqlalchemy import Engine, create_engine, event
@@ -28,9 +29,12 @@ if TYPE_CHECKING:
     from sqlalchemy.engine.interfaces import DBAPIConnection
     from sqlalchemy.pool import ConnectionPoolEntry
 
-# Lazily-initialized process-wide app-service session factory. Tests that need a
-# different engine override the FastAPI dependency instead of mutating this.
+# Lazily-initialized process-wide app-service engine and session factory. Tests
+# that need a different engine override the FastAPI dependency instead of
+# mutating these. Access is serialized by _factory_lock.
+_app_engine: Engine | None = None
 _app_session_factory: sessionmaker[Session] | None = None
+_factory_lock = threading.Lock()
 
 
 def _is_sqlite(url: str) -> bool:
@@ -90,38 +94,45 @@ def create_session_factory(engine: Engine) -> sessionmaker[Session]:
 
 def _get_app_session_factory() -> sessionmaker[Session]:
     """Return the process-wide app-service session factory, creating it once."""
-    global _app_session_factory  # noqa: PLW0603
+    global _app_engine, _app_session_factory  # noqa: PLW0603
     if _app_session_factory is None:
-        if not settings.database_url:
-            msg = "MTG_AI_DATABASE_URL is not set"
-            raise ConfigurationError(msg)
-        engine = create_db_engine(settings.database_url, echo=settings.sql_echo)
-        _app_session_factory = create_session_factory(engine)
+        with _factory_lock:
+            if _app_session_factory is None:
+                if not settings.database_url:
+                    msg = "MTG_AI_DATABASE_URL is not set"
+                    raise ConfigurationError(msg)
+                _app_engine = create_db_engine(
+                    settings.database_url, echo=settings.sql_echo
+                )
+                _app_session_factory = create_session_factory(_app_engine)
     return _app_session_factory
 
 
 def reset_engine_state() -> None:
-    """Discard the cached session factory.
+    """Dispose the cached engine and discard the session factory.
 
     Used by tests that change configuration between cases. Production code never
     calls this.
     """
-    global _app_session_factory  # noqa: PLW0603
-    _app_session_factory = None
+    global _app_engine, _app_session_factory  # noqa: PLW0603
+    with _factory_lock:
+        if _app_engine is not None:
+            _app_engine.dispose()
+        _app_engine = None
+        _app_session_factory = None
 
 
 def get_session() -> Iterator[Session]:
     """Yield an app-service database session (FastAPI dependency).
 
-    The session is rolled back on error and always closed. Endpoints commit
-    explicitly when they intend to persist.
+    Any open transaction is rolled back and the session is always closed.
+    Endpoints commit explicitly when they intend to persist.
     """
     factory = _get_app_session_factory()
     session = factory()
     try:
         yield session
-    except Exception:
-        session.rollback()
-        raise
     finally:
+        if session.in_transaction():
+            session.rollback()
         session.close()

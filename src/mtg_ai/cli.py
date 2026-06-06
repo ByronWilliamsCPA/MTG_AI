@@ -134,6 +134,9 @@ def _alembic_config(lineage: str) -> Config:  # pragma: no cover - operational g
     override = os.environ.get("MTG_AI_ALEMBIC_INI")
     if override:
         ini_path = Path(override)
+        if not ini_path.is_file():
+            msg = f"MTG_AI_ALEMBIC_INI does not point to a file: {ini_path}"
+            raise click.ClickException(msg)
     else:
         ini_path = None
         for parent in [Path.cwd(), *Path.cwd().parents]:

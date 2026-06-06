@@ -15,10 +15,13 @@ set -eu
 
 : "${MTG_AI_DATA_PASSWORD:?MTG_AI_DATA_PASSWORD must be set}"
 : "${MTG_AI_APP_PASSWORD:?MTG_AI_APP_PASSWORD must be set}"
+: "${POSTGRES_USER:?POSTGRES_USER must be set}"
+: "${POSTGRES_DB:?POSTGRES_DB must be set}"
 
 psql -v ON_ERROR_STOP=1 \
     --username "$POSTGRES_USER" \
     --dbname "$POSTGRES_DB" \
+    --set db_name="$POSTGRES_DB" \
     --set data_password="$MTG_AI_DATA_PASSWORD" \
     --set app_password="$MTG_AI_APP_PASSWORD" <<-'EOSQL'
     -- Roles (idempotent). Passwords come from psql variables, not literals.
@@ -29,9 +32,12 @@ psql -v ON_ERROR_STOP=1 \
     WHERE NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'mtg_ai_app')
     \gexec
 
-    -- Both roles may connect to and create schemas in this database.
-    GRANT CONNECT ON DATABASE mtg_ai TO mtg_ai_data, mtg_ai_app;
-    GRANT CREATE ON DATABASE mtg_ai TO mtg_ai_data, mtg_ai_app;
+    -- Both roles may connect to the database. CREATE on the database is needed
+    -- so each writer role can run "CREATE SCHEMA IF NOT EXISTS" for its own
+    -- schema during migrations; the schemas below are pre-created with explicit
+    -- ownership so this stays scoped to each role's own schema in practice.
+    GRANT CONNECT ON DATABASE :"db_name" TO mtg_ai_data, mtg_ai_app;
+    GRANT CREATE ON DATABASE :"db_name" TO mtg_ai_data, mtg_ai_app;
 
     -- Schemas, each owned by its writer role so only that role can DDL within it.
     CREATE SCHEMA IF NOT EXISTS data AUTHORIZATION mtg_ai_data;

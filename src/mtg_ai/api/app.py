@@ -26,9 +26,12 @@ def create_app() -> FastAPI:
         ),
     )
 
-    # Correlation middleware is added first so all downstream logs carry the id.
-    app.add_middleware(CorrelationMiddleware)
+    # Starlette runs middleware in reverse registration order, so register
+    # security first and correlation last. That makes CorrelationMiddleware the
+    # outermost layer, so it still sets the correlation id even when a security
+    # middleware (rate limit, SSRF) returns early without calling the app.
     add_security_middleware(app)
+    app.add_middleware(CorrelationMiddleware)
 
     app.include_router(health_router, prefix=API_V1_PREFIX)
     app.include_router(auth_router, prefix=API_V1_PREFIX)

@@ -47,9 +47,14 @@ class TestGetSessionDependency:
             generator = get_session()
             session = next(generator)
             assert isinstance(session, Session)
+            close_calls: list[bool] = []
+            monkeypatch.setattr(
+                session, "close", lambda: close_calls.append(True), raising=False
+            )
             # Exhaust the generator to trigger the finally/close branch.
             with pytest.raises(StopIteration):
                 next(generator)
+            assert close_calls == [True]
         finally:
             reset_engine_state()
 
@@ -69,15 +74,32 @@ class TestGetSessionDependency:
     def test_get_session_rolls_back_on_error(
         self, monkeypatch: pytest.MonkeyPatch
     ) -> None:
+        from sqlalchemy import text
+
         monkeypatch.setattr(
             engine_module.settings, "database_url", "sqlite://", raising=False
         )
         reset_engine_state()
         try:
             generator = get_session()
-            next(generator)
-            # Throwing into the generator exercises the except/rollback branch.
+            session = next(generator)
+            # Open a transaction so the in_transaction() rollback branch runs.
+            session.execute(text("SELECT 1"))
+            rollback_calls: list[bool] = []
+            close_calls: list[bool] = []
+            monkeypatch.setattr(
+                session,
+                "rollback",
+                lambda: rollback_calls.append(True),
+                raising=False,
+            )
+            monkeypatch.setattr(
+                session, "close", lambda: close_calls.append(True), raising=False
+            )
+            # Throwing into the generator exercises the rollback/close branch.
             with pytest.raises(ValueError, match="boom"):
                 generator.throw(ValueError("boom"))
+            assert rollback_calls == [True]
+            assert close_calls == [True]
         finally:
             reset_engine_state()

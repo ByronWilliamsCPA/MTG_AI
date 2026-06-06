@@ -27,10 +27,11 @@ class User(UUIDPrimaryKeyMixin, TimestampMixin, AppBase):
 
     __tablename__ = "users"
 
+    # unique=True already creates a backing index on Postgres, so no separate
+    # index=True is needed.
     username: Mapped[str] = mapped_column(
         String(64),
         unique=True,
-        index=True,
         nullable=False,
     )
     password_hash: Mapped[str] = mapped_column(String(255), nullable=False)
@@ -59,7 +60,6 @@ class Session(UUIDPrimaryKeyMixin, TimestampMixin, AppBase):
     token_hash: Mapped[str] = mapped_column(
         String(64),
         unique=True,
-        index=True,
         nullable=False,
     )
     expires_at: Mapped[datetime.datetime] = mapped_column(

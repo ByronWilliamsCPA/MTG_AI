@@ -56,20 +56,24 @@ def run_migrations_offline() -> None:
 
 def run_migrations_online() -> None:
     engine = create_engine(url, poolclass=pool.NullPool, future=True)
-    with engine.begin() as connection:
-        connection.execute(text(f'CREATE SCHEMA IF NOT EXISTS "{TARGET_SCHEMA}"'))
-    with engine.connect() as connection:
-        context.configure(
-            connection=connection,
-            target_metadata=target_metadata,
-            version_table=VERSION_TABLE,
-            version_table_schema=TARGET_SCHEMA,
-            include_schemas=True,
-            include_object=include_object,
-        )
-        with context.begin_transaction():
-            context.run_migrations()
-    engine.dispose()
+    try:
+        with engine.begin() as connection:
+            connection.execute(
+                text(f'CREATE SCHEMA IF NOT EXISTS "{TARGET_SCHEMA}"')
+            )
+        with engine.connect() as connection:
+            context.configure(
+                connection=connection,
+                target_metadata=target_metadata,
+                version_table=VERSION_TABLE,
+                version_table_schema=TARGET_SCHEMA,
+                include_schemas=True,
+                include_object=include_object,
+            )
+            with context.begin_transaction():
+                context.run_migrations()
+    finally:
+        engine.dispose()
 
 
 if context.is_offline_mode():

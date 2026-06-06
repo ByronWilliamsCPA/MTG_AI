@@ -36,7 +36,7 @@ class TestModelColumns:
     def test_session_references_user(self) -> None:
         foreign_keys = list(Session.__table__.c.user_id.foreign_keys)
         assert len(foreign_keys) == 1
-        assert foreign_keys[0].column.table.name == "users"
+        assert foreign_keys[0].target_fullname == f"{APP_SCHEMA}.users.id"
 
     def test_session_token_hash_is_unique(self) -> None:
         assert Session.__table__.c.token_hash.unique is True

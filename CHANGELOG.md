@@ -17,14 +17,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Authentication: `User`/`Session` models, PBKDF2-HMAC-SHA256 password hashing
   (FIPS-approved; bcrypt prohibited), opaque session tokens stored as SHA-256
   hashes, auth service, and `POST /api/v1/auth/login` + `GET /api/v1/auth/me`
-- FastAPI application factory (`mtg_ai.main:app`) serving `GET /api/v1/health`
-- Postgres role/schema bootstrap (`scripts/sql/init-roles.sql`) enforcing the
+- FastAPI application factory (`mtg_ai.main:app`) serving the health probes
+  under `/api/v1/health` (`/live`, `/ready`, `/startup`)
+- Postgres role/schema bootstrap (`scripts/sql/init-roles.sh`) enforcing the
   single-writer rule at the database level
 - Data-service CLI commands: `mtg_ai db upgrade/downgrade/current` and
   `mtg_ai user create`
 - docker-compose `data` service plus role-aware database wiring
 
 ### Changed
+
 - Dockerfile installs the `api` extra and points the healthcheck at
   `/api/v1/health/live`
 

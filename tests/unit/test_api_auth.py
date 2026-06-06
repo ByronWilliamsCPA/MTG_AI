@@ -78,6 +78,7 @@ class TestCurrentUser:
     ) -> None:
         _make_user(db_session, "carol")
         login = auth_client.post("/api/v1/auth/login", json=_login_payload("carol"))
+        assert login.status_code == 200
         token = login.json()["token"]
         response = auth_client.get(
             "/api/v1/auth/me",
@@ -91,11 +92,12 @@ class TestCurrentUser:
     ) -> None:
         _make_user(db_session, "dave")
         _make_user(db_session, "erin")
-        dave_token = auth_client.post(
-            "/api/v1/auth/login", json=_login_payload("dave")
-        ).json()["token"]
+        login = auth_client.post("/api/v1/auth/login", json=_login_payload("dave"))
+        assert login.status_code == 200
+        dave_token = login.json()["token"]
         me = auth_client.get(
             "/api/v1/auth/me",
             headers={"Authorization": f"Bearer {dave_token}"},
         )
+        assert me.status_code == 200
         assert me.json()["username"] == "dave"

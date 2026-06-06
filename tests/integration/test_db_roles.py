@@ -88,6 +88,12 @@ def test_app_role_can_write_app_tables(
                 ),
                 {"id": uuid.uuid4(), "username": username},
             )
+        with app_engine.connect() as connection:
+            count = connection.execute(
+                text("SELECT COUNT(*) FROM app.users WHERE username = :username"),
+                {"username": username},
+            ).scalar_one()
+        assert count == 1
     finally:
         app_engine.dispose()
 

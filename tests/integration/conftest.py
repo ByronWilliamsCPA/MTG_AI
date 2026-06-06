@@ -73,12 +73,12 @@ def migrated_database(
     }
     saved_settings = config_module.settings
 
-    # Point settings at the integration URLs before env.py imports them.
-    os.environ["MTG_AI_DATA_DATABASE_URL"] = data_url
-    os.environ["MTG_AI_DATABASE_URL"] = app_url
-    config_module.settings = config_module.Settings()
-
     try:
+        # Point settings at the integration URLs before env.py imports them.
+        # Done inside the try so a Settings() failure still triggers cleanup.
+        os.environ["MTG_AI_DATA_DATABASE_URL"] = data_url
+        os.environ["MTG_AI_DATABASE_URL"] = app_url
+        config_module.settings = config_module.Settings()
         for section in ("data", "app"):
             config = Config(str(ini_path), ini_section=section)
             config.config_ini_section = section

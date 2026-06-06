@@ -1,8 +1,9 @@
 """data: initial baseline (schema marker anchor)
 
-Creates the data-owned tables for Phase 0. The baseline is created directly from
-the model metadata so the migration and the ORM never drift. Phase 1 adds the
-reference, corpus, and analytics tables as incremental migrations.
+Creates the data-owned tables for Phase 0 with explicit operations so the
+revision is an immutable snapshot: replaying it on a fresh database always
+creates exactly these tables, regardless of models added in later phases. Phase 1
+adds the reference, corpus, and analytics tables as incremental migrations.
 
 Revision ID: 0001_data_initial
 Revises:
@@ -13,9 +14,8 @@ from __future__ import annotations
 
 from collections.abc import Sequence
 
+import sqlalchemy as sa
 from alembic import op
-
-from mtg_ai.schema import DataBase
 
 revision: str = "0001_data_initial"
 down_revision: str | None = None
@@ -24,8 +24,22 @@ depends_on: str | Sequence[str] | None = None
 
 
 def upgrade() -> None:
-    DataBase.metadata.create_all(bind=op.get_bind())
+    op.create_table(
+        "schema_marker",
+        sa.Column("id", sa.Integer(), autoincrement=True, nullable=False),
+        sa.Column("component", sa.String(length=64), nullable=False),
+        sa.Column("note", sa.String(length=255), nullable=False),
+        sa.Column(
+            "created_at",
+            sa.DateTime(timezone=True),
+            server_default=sa.text("now()"),
+            nullable=False,
+        ),
+        sa.PrimaryKeyConstraint("id", name="pk_schema_marker"),
+        sa.UniqueConstraint("component", name="uq_schema_marker_component"),
+        schema="data",
+    )
 
 
 def downgrade() -> None:
-    DataBase.metadata.drop_all(bind=op.get_bind())
+    op.drop_table("schema_marker", schema="data")

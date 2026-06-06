@@ -50,6 +50,22 @@ class TestUserProvisioning:
         with pytest.raises(ValidationError):
             create_user(db_session, username, password)
 
+    def test_overlong_username_is_rejected(self, db_session: DBSession) -> None:
+        with pytest.raises(ValidationError):
+            create_user(db_session, "x" * 65, _PW)
+
+    def test_unique_violation_at_flush_becomes_validation_error(
+        self, db_session: DBSession, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        from mtg_ai.auth import service
+
+        create_user(db_session, "trent", _PW)
+        # Simulate a race by bypassing the pre-check so the database unique
+        # constraint is what rejects the duplicate.
+        monkeypatch.setattr(service, "get_user_by_username", lambda *_a, **_k: None)
+        with pytest.raises(ValidationError):
+            create_user(db_session, "trent", _PW)
+
 
 @pytest.mark.unit
 @pytest.mark.security
