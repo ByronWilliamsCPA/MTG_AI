@@ -155,3 +155,74 @@ def setup_logging() -> None:
     from mtg_ai.utils.logging import setup_logging
 
     setup_logging(level="DEBUG", json_logs=False, include_timestamp=False)
+
+
+# ============================================================================
+# Database and API Fixtures
+# ============================================================================
+
+
+@pytest.fixture
+def db_engine() -> object:
+    """Yield an in-memory SQLite engine with all tables created.
+
+    The ``data`` and ``app`` schemas are attached so the schema-qualified models
+    resolve on SQLite just as they do on Postgres.
+    """
+    from mtg_ai.db.engine import create_db_engine
+    from mtg_ai.schema.base import AppBase, DataBase
+
+    engine = create_db_engine("sqlite://")
+    with engine.begin() as connection:
+        DataBase.metadata.create_all(connection)
+        AppBase.metadata.create_all(connection)
+    yield engine
+    engine.dispose()
+
+
+@pytest.fixture
+def db_session(db_engine: object) -> object:
+    """Yield a SQLAlchemy session bound to the in-memory engine."""
+    from sqlalchemy import Engine
+
+    from mtg_ai.db.engine import create_session_factory
+
+    assert isinstance(db_engine, Engine)
+    factory = create_session_factory(db_engine)
+    session = factory()
+    try:
+        yield session
+    finally:
+        session.close()
+
+
+@pytest.fixture
+def auth_client(db_engine: object) -> object:
+    """Yield a TestClient for a lean app exposing only the auth router.
+
+    A lean app keeps these tests isolated from rate-limiting and other security
+    middleware so they exercise authentication behavior deterministically.
+    """
+    from fastapi import FastAPI
+    from fastapi.testclient import TestClient
+    from sqlalchemy import Engine
+
+    from mtg_ai.api.auth import router as auth_router
+    from mtg_ai.db.engine import create_session_factory, get_session
+
+    assert isinstance(db_engine, Engine)
+    factory = create_session_factory(db_engine)
+
+    app = FastAPI()
+    app.include_router(auth_router, prefix="/api/v1")
+
+    def _override_session() -> object:
+        session = factory()
+        try:
+            yield session
+        finally:
+            session.close()
+
+    app.dependency_overrides[get_session] = _override_session
+    with TestClient(app) as client:
+        yield client

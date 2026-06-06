@@ -128,6 +128,7 @@ api = [
     "starlette>=0.49.1",
     "sqlalchemy[asyncio]>=2.0.0",  # ORM for database operations
     "alembic>=1.12.0",  # Database migrations
+    "psycopg[binary]>=3.2.0",  # PostgreSQL driver (sync)
 ]
 
 

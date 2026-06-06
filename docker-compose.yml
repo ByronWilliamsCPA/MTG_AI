@@ -20,11 +20,13 @@ services:
     environment:
       # Core settings
       ENVIRONMENT: ${ENVIRONMENT:-development}
-      LOG_LEVEL: ${LOG_LEVEL:-INFO}
-      JSON_LOGS: ${JSON_LOGS:-false}
+      MTG_AI_LOG_LEVEL: ${LOG_LEVEL:-INFO}
+      MTG_AI_JSON_LOGS: ${JSON_LOGS:-false}
 
-      # Database configuration
-      DATABASE_URL: ${DATABASE_URL:-postgresql://mtg_ai:password@db:5432/mtg_ai}
+      # Database configuration. The app service connects with the restricted
+      # app role (SELECT on data tables, full DML on app tables). The password
+      # is sourced from the environment / .env, never hardcoded here.
+      MTG_AI_DATABASE_URL: postgresql+psycopg://mtg_ai_app:${MTG_AI_APP_PASSWORD}@db:5432/mtg_ai
       # Redis cache (if applicable)
       # REDIS_URL: ${REDIS_URL:-redis://redis:6379/0}
 
@@ -43,11 +45,16 @@ services:
       # Logs (optional)
       # - ./logs:/app/logs
 
+    # Run the app-lineage migrations, then start the API server.
+    command:
+      - sh
+      - -c
+      - "mtg_ai db upgrade --lineage app && uvicorn mtg_ai.main:app --host 0.0.0.0 --port 8000"
     depends_on:
       db:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/health/live"]
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/v1/health/live"]
       interval: 30s
       timeout: 3s
       retries: 3
@@ -57,6 +64,33 @@ services:
     # Security: Run as non-root user
     user: "1000:1000"
 
+    networks:
+      - mtg_ai-network
+
+# =============================================================================
+  # Data Service (ingestion, scheduler, data-lineage migrations)
+  # =============================================================================
+  # Phase 0 skeleton: runs the data-lineage migrations as the data writer role,
+  # then exits. Phase 1 turns this into the long-running ingestion scheduler.
+  data:
+    image: mtg_ai:${VERSION:-latest}
+    container_name: mtg_ai-data
+    environment:
+      ENVIRONMENT: ${ENVIRONMENT:-development}
+      MTG_AI_LOG_LEVEL: ${LOG_LEVEL:-INFO}
+      MTG_AI_JSON_LOGS: ${JSON_LOGS:-false}
+      # The data service connects with the data writer role. The password is
+      # sourced from the environment / .env, never hardcoded here.
+      MTG_AI_DATA_DATABASE_URL: postgresql+psycopg://mtg_ai_data:${MTG_AI_DATA_PASSWORD}@db:5432/mtg_ai
+    command:
+      - sh
+      - -c
+      - "mtg_ai db upgrade --lineage data && mtg_ai db current --lineage data"
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: "no"
+    user: "1000:1000"
     networks:
       - mtg_ai-network
 
@@ -97,12 +131,15 @@ services:
       POSTGRES_USER: mtg_ai
       POSTGRES_PASSWORD: ${DB_PASSWORD:-password}
       POSTGRES_INITDB_ARGS: "--encoding=UTF8 --locale=en_US.UTF-8"
+      # Role passwords for the init script (sourced from .env, not hardcoded).
+      MTG_AI_DATA_PASSWORD: ${MTG_AI_DATA_PASSWORD}
+      MTG_AI_APP_PASSWORD: ${MTG_AI_APP_PASSWORD}
 
     volumes:
       # Persistent data
       - postgres-data:/var/lib/postgresql/data
-      # Init scripts (optional)
-      # - ./scripts/init-db.sql:/docker-entrypoint-initdb.d/init.sql:ro
+      # Create the data/app roles and schemas on first start (single-writer rule).
+      - ./scripts/sql/init-roles.sh:/docker-entrypoint-initdb.d/10-init-roles.sh:ro
 
     ports:
       - "${DB_PORT:-5432}:5432"

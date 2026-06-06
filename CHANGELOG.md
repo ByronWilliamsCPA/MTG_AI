@@ -9,6 +9,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - Initial project setup and structure
+- Phase 0 foundation: shared `mtg_ai.schema` package with two declarative bases
+  mapped to separate `data` and `app` Postgres schemas (ADR-001/ADR-002)
+- Two independent Alembic lineages (`migrations/data`, `migrations/app`) with
+  per-schema version tables so histories never collide
+- Database engine and session factory with SQLite schema-attach support for tests
+- Authentication: `User`/`Session` models, PBKDF2-HMAC-SHA256 password hashing
+  (FIPS-approved; bcrypt prohibited), opaque session tokens stored as SHA-256
+  hashes, auth service, and `POST /api/v1/auth/login` + `GET /api/v1/auth/me`
+- FastAPI application factory (`mtg_ai.main:app`) serving `GET /api/v1/health`
+- Postgres role/schema bootstrap (`scripts/sql/init-roles.sql`) enforcing the
+  single-writer rule at the database level
+- Data-service CLI commands: `mtg_ai db upgrade/downgrade/current` and
+  `mtg_ai user create`
+- docker-compose `data` service plus role-aware database wiring
+
+### Changed
+- Dockerfile installs the `api` extra and points the healthcheck at
+  `/api/v1/health/live`
 
 ### Fixed
 - Renovate now manages the `frontend/` npm ecosystem: added `npm` to
