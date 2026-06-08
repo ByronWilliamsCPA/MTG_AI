@@ -28,9 +28,9 @@ ADRs document significant architectural decisions along with their context and c
 | [ADR-001](./adr-001-initial-architecture.md) | Split-Service Architecture with a Shared Single-Writer Database | Accepted (amended) | 2026-06-01 |
 | [ADR-002](./adr-002-data-model.md) | Layered Data Model with Reuse-First Ingestion | Accepted | 2026-06-01 |
 | [ADR-003](./adr-003-engine-approach.md) | Deterministic Scorecard Engine, LLM for Explanation | Accepted | 2026-06-01 |
-| [ADR-004](./adr-004-multi-lens-critique-reviewers.md) | Multi-Lens Critique Reviewers Over the Scorecard | Proposed | 2026-06-06 |
-| [ADR-005](./adr-005-archetype-critique-spines.md) | Archetype-Specific Critique Spines | Proposed | 2026-06-06 |
-| [ADR-006](./adr-006-compounding-learnings-log.md) | Compounding Learnings Log for Critique Quality | Proposed | 2026-06-06 |
+| [ADR-004](./adr-004-multi-lens-critique-reviewers.md) | Multi-Lens Critique Reviewers Over the Scorecard | Accepted | 2026-06-08 |
+| [ADR-005](./adr-005-archetype-critique-spines.md) | Archetype-Specific Critique Spines | Accepted (scoped for v1) | 2026-06-08 |
+| [ADR-006](./adr-006-compounding-learnings-log.md) | Compounding Learnings Log for Critique Quality | Accepted (v1 capture; triage Phase 4) | 2026-06-08 |
 
 ## Creating ADRs
 

@@ -1,7 +1,7 @@
 ---
 title: "ADR-004: Multi-Lens Critique Reviewers Over the Scorecard"
 schema_type: planning
-status: proposed
+status: accepted
 owner: core-maintainer
 purpose: "Record the decision to structure the review as independent, category-owning lenses aggregated by a gate, rather than one monolithic scorer."
 tags:
@@ -10,17 +10,24 @@ tags:
   - decisions
 ---
 
-> **Status**: Proposed
-> **Date**: 2026-06-06
+> **Status**: Accepted
+> **Date**: 2026-06-08 (proposed 2026-06-06)
 > **Supersedes**: None
+> **Decision note**: Accepted after a multi-lens panel review on 2026-06-08
+> (roadmap-fit, architecture-coherence, and solo-maintainer-feasibility lenses).
+> Scoped for v1: the lenses run sequentially; concurrent execution is a recorded
+> future option, not a v1 requirement. The shared `DeckSnapshot` contract below
+> is the reconciliation point for ADR-005 and ADR-006.
 
 ## TL;DR
 
 The deterministic review is composed of independent, category-owning lenses
 (legality/identity, power/bracket, consistency/manabase, interaction/role,
-wincon/combo), each emitting its own verdict and observations over a single deck
-snapshot, aggregated by a gate; the lenses are pure functions and run in
-parallel, with the LLM explanation remaining the only swappable, off-path step.
+wincon/combo), each emitting its own verdict and observations over a single
+versioned deck snapshot, aggregated by a gate; the lenses are pure functions of
+that snapshot. They run sequentially in v1 (parallel execution is a recorded
+future option), with the LLM explanation remaining the only swappable, off-path
+step.
 
 ## Context
 
@@ -64,9 +71,14 @@ and must all pass before release.
   power/bracket, consistency/manabase, interaction/role, and wincon/combo each
   emit a verdict plus observations that the aggregator composes into the
   scorecard. A failing legality gate short-circuits before the soft lenses run.
-- **Embarrassingly parallel**: the soft lenses are pure functions of the snapshot
-  and rules-version, so they run concurrently with no shared mutable state; this
-  is the deterministic analogue of FluidDocs spawning a subagent per reviewer.
+- **Pure, order-independent, parallelizable later**: the soft lenses are pure
+  functions of the snapshot and rules-version with no shared mutable state, so
+  their output is independent of execution order. v1 runs them sequentially
+  (they are fast database lookups well within the p95 < 5s budget, so concurrency
+  buys no latency at this scale while adding execution-order test burden);
+  concurrent execution remains available as a future option without changing the
+  contract. This is the deterministic analogue of FluidDocs spawning a subagent
+  per reviewer.
 - **Explanation stays off the path**: the swappable generator narrates the
   aggregated lens output; it cannot change a lens verdict (preserves ADR-003).
 
@@ -116,9 +128,9 @@ and must all pass before release.
 
 ### Trade-offs
 
-- A shared snapshot and aggregation schema couple the lenses: mitigated by a small
-  typed snapshot model and a fixed lens-result contract (verdict + observations +
-  rules-version).
+- A shared snapshot and aggregation schema couple the lenses: mitigated by the
+  small typed `DeckSnapshot` model defined above and a fixed lens-result contract
+  (verdict + observations + rules-version + spine-version).
 
 ### Technical Debt
 
@@ -126,6 +138,29 @@ and must all pass before release.
   tuning; surface them as guides, not verdicts (consistent with ADR-003).
 
 ## Implementation
+
+### Deck Snapshot Contract (shared with ADR-005 and ADR-006)
+
+The "deck snapshot" is a first-class, app-owned, persisted artifact, not a
+transient in-memory object. Defining it once here closes a gap the panel review
+flagged: ADR-005 and ADR-006 both depend on the snapshot being durable and fully
+versioned, so its contents and ownership are fixed at this layer.
+
+- **Ownership**: app-owned (Application layer per ADR-002), written by the app
+  service alongside `DeckReview`. It is never a data-owned (Corpus/Reference)
+  row, so it does not touch the single-writer rule in ADR-001.
+- **Contents**: resolved cards by `oracle_id`, commander(s), computed
+  `color_identity`, and the full version vector needed to reproduce a review:
+  `rules_version`, `spine_version` and `archetype` (ADR-005), and
+  `classifier_version` (ADR-005). Any user override (e.g. a forced archetype) is
+  captured here as a recorded input.
+- **Reproducibility invariant**: a review is a pure function of
+  `(DeckSnapshot, rules_version, spine_version, classifier_version)`. Identical
+  snapshots plus identical versions yield identical lens results regardless of
+  execution order.
+- **Lens-result contract**: each lens returns `{lens, verdict, observations,
+  rules_version, spine_version}` so every finding is attributable to its category
+  and its versioned inputs.
 
 ### Components Affected
 

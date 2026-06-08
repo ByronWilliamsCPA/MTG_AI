@@ -1,7 +1,7 @@
 ---
 title: "ADR-005: Archetype-Specific Critique Spines"
 schema_type: planning
-status: proposed
+status: accepted
 owner: core-maintainer
 purpose: "Record the decision to evaluate decks against archetype-specific expectations (spines) rather than one universal role-coverage rubric."
 tags:
@@ -10,16 +10,27 @@ tags:
   - decisions
 ---
 
-> **Status**: Proposed
-> **Date**: 2026-06-06
+> **Status**: Accepted
+> **Date**: 2026-06-08 (proposed 2026-06-06)
 > **Supersedes**: None
+> **Decision note**: Accepted after the 2026-06-08 multi-lens panel review. The
+> architecturally expensive part, archetype targets as effective-dated config the
+> lenses read (the "spine seam"), is adopted now because retrofitting it is
+> costly. The implementation is deliberately scoped down for v1 (see
+> "v1 scope" below): a single generic-midrange spine plus a user-supplied
+> archetype override, with the deterministic classifier and the multi-archetype
+> spine library deferred until real reviews justify them. This bounds the ongoing
+> meta-curation burden the feasibility lens flagged as the single largest
+> solo-maintainer risk in the set.
 
 ## TL;DR
 
-The review classifies a deck's archetype (for example turbo/combo, stax/control,
-midrange/value, aggro) and evaluates it against an archetype-specific spine of
-role targets, thresholds, and lens weights stored as versioned, effective-dated
-config, rather than scoring every deck against one universal rubric.
+The review evaluates a deck against an archetype-specific spine of role targets,
+thresholds, and lens weights stored as versioned, effective-dated config, rather
+than against one universal rubric. The lenses read the resolved spine as data.
+v1 ships one generic-midrange spine plus a user override; deterministic
+archetype classification and additional archetype spines (turbo/combo,
+stax/control, aggro) are added incrementally post-v1.
 
 ## Context
 
@@ -55,14 +66,22 @@ its own structure rather than inheriting one generic template.
 
 ### Rationale
 
-- **Deterministic classification**: a deck's archetype is inferred from its
-  commander, role distribution, and combo presence by explicit rules, with a
-  declared fallback (generic midrange spine) when confidence is low; the chosen
-  spine and its version are recorded on the review.
+- **Deterministic classification (post-v1)**: a deck's archetype is inferred from
+  its commander, role distribution, and combo presence by explicit rules, with a
+  declared fallback (generic midrange spine) when confidence is low. Because the
+  classifier is code, not effective-dated data, the ADR-002 reproducibility
+  guarantee does not cover it automatically: the snapshot therefore records a
+  `classifier_version` alongside `rules_version` and `spine_version`, so a
+  classifier rule change cannot silently alter a past review for identical
+  inputs. The chosen archetype, spine version, and classifier version are all
+  recorded on the review (in the `DeckSnapshot` defined in ADR-004).
 - **Spine as data**: each spine declares role targets (ramp, interaction, card
   advantage, threats, win lines), thresholds, and per-lens weights; spines carry
   effective dates exactly like the bracket rules and Game Changers list in
   [ADR-002](../adr/adr-002-data-model.md), so old reviews stay reproducible.
+  Spines are **data-owned** reference config (written only by the data service,
+  read by the app via `SELECT`), consistent with the single-writer rule in
+  [ADR-001](../adr/adr-001-initial-architecture.md).
 - **Lenses read the spine**: the ADR-004 lenses take the resolved spine as input;
   the same lens code judges a turbo and a stax deck differently because the
   targets differ, not because the code branches.
@@ -125,13 +144,31 @@ its own structure rather than inheriting one generic template.
 
 ## Implementation
 
+### v1 Scope (what ships first)
+
+- **Ship now**: the spine config schema (effective-dated, data-owned), a single
+  generic-midrange spine seeded in `reference_config`, the lenses reading the
+  resolved spine instead of hard-coded constants, and a user-supplied archetype
+  override persisted as a review input. This is the full architectural seam at
+  minimal curation cost.
+- **Defer (add incrementally post-v1, one per real misjudgment)**: the
+  deterministic `archetype-classifier` and the additional archetype spines
+  (turbo/combo, stax/control, aggro). Until the classifier exists, the archetype
+  is either the generic-midrange default or the user override. Adding a spine or
+  the classifier later does not change the contract, only the data and one
+  app-side module.
+
 ### Components Affected
 
-1. **archetype-classifier**: deterministic archetype inference with a fallback and
-   a user override hook.
-2. **spine config**: effective-dated archetype spines (targets, thresholds,
-   weights) in refreshable config, owned like the bracket rules in ADR-002.
-3. **lenses**: consume the resolved spine instead of universal constants.
+1. **spine config** (v1): effective-dated archetype spines (targets, thresholds,
+   weights) in refreshable, data-owned config, owned like the bracket rules in
+   ADR-002. v1 seeds one generic-midrange spine.
+2. **lenses** (v1): consume the resolved spine instead of universal constants.
+3. **user override** (v1): a user-forced archetype, captured in the `DeckSnapshot`
+   (ADR-004) as a recorded input so re-runs are reproducible.
+4. **archetype-classifier** (post-v1): deterministic archetype inference with a
+   low-confidence fallback to the generic-midrange spine; records
+   `classifier_version` on the review.
 
 ### Testing Strategy
 
@@ -142,9 +179,14 @@ its own structure rather than inheriting one generic template.
 
 ### Success Criteria
 
-- [ ] Every review records the archetype and spine version it used.
+- [ ] Every review records the archetype, spine version, and (once the classifier
+      ships) classifier version it used, on the `DeckSnapshot`.
 - [ ] An archetype-correct deck is not flagged for an intended, on-spine choice.
-- [ ] A user can override the detected archetype and re-run reproducibly.
+- [ ] A user can override the archetype; the override is persisted as a review
+      input and the review re-runs reproducibly.
+- [ ] v1 acceptance: lenses read the generic-midrange spine from config (no
+      hard-coded role constants); a user override selects an alternate spine when
+      one exists.
 
 ## Related
 
