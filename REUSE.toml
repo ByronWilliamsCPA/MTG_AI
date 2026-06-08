@@ -17,6 +17,8 @@ path = [
     "fuzz/**",
     "benchmarks/**/*.py",
     "scripts/**/*.py",
+    "scripts/**/*.sql",
+    "migrations/**",
     "modal/**/*.py",
     "*.py",
     "noxfile.py",
@@ -41,6 +43,7 @@ SPDX-FileCopyrightText = "2026 Byron Williams <byronawilliams@gmail.com>"
 [[annotations]]
 path = [
     "**/*.toml",
+    "**/*.ini",
     "**/*.yml",
     "**/*.yaml",
     "**/*.json",

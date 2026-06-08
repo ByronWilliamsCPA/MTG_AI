@@ -4,15 +4,22 @@ Provides commands for common operations and demonstrates Click best practices
 with structured logging integration.
 """
 
+from __future__ import annotations
+
+import os
 import sys
 from dataclasses import dataclass
-from typing import cast
+from pathlib import Path
+from typing import TYPE_CHECKING, cast
 
 import click
-from structlog.stdlib import BoundLogger
 
 from mtg_ai.core.config import settings
 from mtg_ai.utils.logging import get_logger
+
+if TYPE_CHECKING:
+    from alembic.config import Config
+    from structlog.stdlib import BoundLogger
 
 logger: BoundLogger = get_logger(__name__)
 
@@ -111,6 +118,130 @@ def config(ctx: click.Context) -> None:
         logger.exception("Failed to display configuration", error=str(e))
         click.echo(f"Error: {e}", err=True)
         sys.exit(1)
+
+
+_LINEAGES = ("data", "app")
+
+
+def _alembic_config(lineage: str) -> Config:  # pragma: no cover - operational glue
+    """Build an Alembic Config for one lineage from the repo ``alembic.ini``.
+
+    The ini path can be overridden with ``MTG_AI_ALEMBIC_INI``; otherwise it is
+    resolved by walking up from the current directory.
+    """
+    from alembic.config import Config  # noqa: PLC0415 - api extra, imported lazily
+
+    override = os.environ.get("MTG_AI_ALEMBIC_INI")
+    if override:
+        ini_path = Path(override)
+        if not ini_path.is_file():
+            msg = f"MTG_AI_ALEMBIC_INI does not point to a file: {ini_path}"
+            raise click.ClickException(msg)
+    else:
+        ini_path = None
+        for parent in [Path.cwd(), *Path.cwd().parents]:
+            candidate = parent / "alembic.ini"
+            if candidate.is_file():
+                ini_path = candidate
+                break
+        if ini_path is None:
+            msg = "Could not locate alembic.ini; set MTG_AI_ALEMBIC_INI"
+            raise click.ClickException(msg)
+
+    config = Config(str(ini_path), ini_section=lineage)
+    config.config_ini_section = lineage
+    return config
+
+
+@cli.group()
+def db() -> None:
+    """Database migration commands (data and app lineages)."""
+
+
+@db.command("upgrade")
+@click.option(
+    "--lineage",
+    type=click.Choice([*_LINEAGES, "all"]),
+    default="all",
+    help="Which lineage to upgrade.",
+)
+def db_upgrade(lineage: str) -> None:  # pragma: no cover - requires a live database
+    """Upgrade one or both lineages to the latest revision."""
+    from alembic import command  # noqa: PLC0415 - api extra, imported lazily
+
+    targets = list(_LINEAGES) if lineage == "all" else [lineage]
+    for target in targets:
+        logger.info("Upgrading database lineage", lineage=target)
+        command.upgrade(_alembic_config(target), "head")
+    click.echo(f"Upgraded: {', '.join(targets)}")
+
+
+@db.command("downgrade")
+@click.option("--lineage", type=click.Choice(_LINEAGES), required=True)
+@click.option("--revision", default="-1", help="Target revision (default: -1).")
+def db_downgrade(
+    lineage: str,
+    revision: str,
+) -> None:  # pragma: no cover - requires a live database
+    """Downgrade a lineage to a revision."""
+    from alembic import command  # noqa: PLC0415 - api extra, imported lazily
+
+    command.downgrade(_alembic_config(lineage), revision)
+    click.echo(f"Downgraded {lineage} to {revision}")
+
+
+@db.command("current")
+@click.option(
+    "--lineage",
+    type=click.Choice([*_LINEAGES, "all"]),
+    default="all",
+)
+def db_current(lineage: str) -> None:  # pragma: no cover - requires a live database
+    """Show the current revision of one or both lineages."""
+    from alembic import command  # noqa: PLC0415 - api extra, imported lazily
+
+    targets = list(_LINEAGES) if lineage == "all" else [lineage]
+    for target in targets:
+        command.current(_alembic_config(target))
+
+
+@cli.group()
+def user() -> None:
+    """User administration (out-of-band account provisioning)."""
+
+
+@user.command("create")
+@click.option("--username", required=True, help="Username to create.")
+@click.password_option(help="Password for the new user.")
+def user_create(
+    username: str,
+    password: str,
+) -> None:  # pragma: no cover - requires a live database
+    """Create a new application user.
+
+    Accounts are provisioned here rather than through an open endpoint, so a
+    self-hosted deployment has no unauthenticated account-creation surface.
+    """
+    from mtg_ai.auth.service import create_user  # noqa: PLC0415
+    from mtg_ai.core.exceptions import ValidationError  # noqa: PLC0415
+    from mtg_ai.db.engine import (  # noqa: PLC0415
+        create_db_engine,
+        create_session_factory,
+    )
+
+    engine = create_db_engine(settings.database_url)
+    factory = create_session_factory(engine)
+    session = factory()
+    try:
+        created = create_user(session, username, password)
+        session.commit()
+        click.echo(f"Created user {created.username} ({created.id})")
+    except ValidationError as exc:
+        session.rollback()
+        raise click.ClickException(str(exc)) from exc
+    finally:
+        session.close()
+        engine.dispose()
 
 
 if __name__ == "__main__":

@@ -30,13 +30,13 @@ COPY README.md ./
 
 # Install dependencies to a virtual environment
 # This creates .venv/ which we'll copy to the final stage
-RUN uv sync --frozen --no-dev --no-install-project
+RUN uv sync --frozen --no-dev --extra api --no-install-project
 
 # Copy application code
 COPY . .
 
-# Install the project itself
-RUN uv sync --frozen --no-dev
+# Install the project itself (with the API extra: FastAPI, SQLAlchemy, psycopg)
+RUN uv sync --frozen --no-dev --extra api
 
 # =============================================================================
 # Stage 2: Runtime - Minimal production image
@@ -84,7 +84,7 @@ USER appuser
 EXPOSE 8000
 # Health check - adjust endpoint based on your app
 HEALTHCHECK --interval=30s --timeout=3s --start-period=40s --retries=3 \
-    CMD curl -f http://localhost:8000/health/live || exit 1
+    CMD curl -f http://localhost:8000/api/v1/health/live || exit 1
 
 # Default command - run web server
 CMD ["uvicorn", "mtg_ai.main:app", "--host", "0.0.0.0", "--port", "8000"]
