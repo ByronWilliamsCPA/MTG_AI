@@ -10,6 +10,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Initial project setup and structure
 
+### Fixed
+- Renovate now manages the `frontend/` npm ecosystem: added `npm` to
+  `enabledManagers` (previously limited to `pep621` and `github-actions`, so
+  npm dependency updates were silently skipped). npm is also included in the
+  high-priority security-update rule and gets dedicated grouping rules
+  matching the Python dependency grouping pattern.
+
 ## [0.1.0] - TBD
 
 ### Added

@@ -59,20 +59,9 @@ Only affects Subversion repository path parsing, which this project does not use
 interrogate is a dev dependency for docstring coverage checking.
 The py package is unmaintained but poses no security risk in this context.
 See: https://nvd.nist.gov/vuln/detail/CVE-2022-42969
-"""
 
-[[IgnoredVulns]]
-id = "PYSEC-2022-42969"
-reason = """
-Same as CVE-2022-42969 - DISPUTED ReDoS in py package via interrogate.
-Dev dependency only, affects SVN parsing which is not used.
-"""
-
-[[IgnoredVulns]]
-id = "GHSA-w596-4wvx-j9j6"
-reason = """
-GitHub Security Advisory for py ReDoS (same as CVE-2022-42969).
-DISPUTED vulnerability affecting SVN path parsing.
-interrogate (dev dependency) transitively requires py, but this project
-does not interact with Subversion repositories.
+OSV-Scanner matches this advisory and all its aliases (PYSEC-2022-42969,
+GHSA-w596-4wvx-j9j6) via this single CVE id. Listing the aliases separately
+makes OSV-Scanner report them as "unused ignores" and exit non-zero, so only
+the CVE id is kept here.
 """
