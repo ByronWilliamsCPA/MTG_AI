@@ -32,12 +32,14 @@ psql -v ON_ERROR_STOP=1 \
     WHERE NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'mtg_ai_app')
     \gexec
 
-    -- Both roles may connect to the database. CREATE on the database is needed
-    -- so each writer role can run "CREATE SCHEMA IF NOT EXISTS" for its own
-    -- schema during migrations; the schemas below are pre-created with explicit
-    -- ownership so this stays scoped to each role's own schema in practice.
+    -- Both roles may connect to the database. CREATE on the database is
+    -- intentionally NOT granted: the schemas below are pre-created here with
+    -- explicit ownership, and withholding database-level CREATE means neither
+    -- role can introduce a brand-new schema to write in. This makes the
+    -- single-writer rule a true database-level guarantee rather than a
+    -- within-schema convention. Migrations rely on the pre-created schema and
+    -- skip CREATE SCHEMA when it already exists (see migrations/*/env.py).
     GRANT CONNECT ON DATABASE :"db_name" TO mtg_ai_data, mtg_ai_app;
-    GRANT CREATE ON DATABASE :"db_name" TO mtg_ai_data, mtg_ai_app;
 
     -- Schemas, each owned by its writer role so only that role can DDL within it.
     CREATE SCHEMA IF NOT EXISTS data AUTHORIZATION mtg_ai_data;

@@ -9,7 +9,7 @@ from logging.config import fileConfig
 from typing import Any
 
 from alembic import context
-from sqlalchemy import create_engine, pool, text
+from sqlalchemy import create_engine, inspect, pool, text
 
 from mtg_ai.core.config import settings
 from mtg_ai.schema import DataBase  # noqa: F401 - import registers data models
@@ -57,9 +57,18 @@ def run_migrations_online() -> None:
     engine = create_engine(url, poolclass=pool.NullPool, future=True)
     try:
         with engine.begin() as connection:
-            connection.execute(
-                text(f'CREATE SCHEMA IF NOT EXISTS "{TARGET_SCHEMA}"')
-            )
+            # #ASSUME: external_resource: the target schema is pre-created by
+            # scripts/sql/init-roles.sh with role ownership, so the writer role
+            # holds no CREATE-on-database privilege (single-writer rule). Only
+            # attempt CREATE SCHEMA when it is genuinely absent (e.g. an admin
+            # bootstrap that skipped the init script), which keeps the grant
+            # model intact in normal deployments.
+            # #VERIFY: tests/integration/test_db_roles.py upgrades as the
+            # unprivileged role against the pre-created schema.
+            if TARGET_SCHEMA not in inspect(connection).get_schema_names():
+                connection.execute(
+                    text(f'CREATE SCHEMA IF NOT EXISTS "{TARGET_SCHEMA}"')
+                )
         with engine.connect() as connection:
             context.configure(
                 connection=connection,
