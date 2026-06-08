@@ -2206,6 +2206,116 @@ with structured logging integration.</p>
 
 </div>
 
+<div class="doc doc-object doc-function">
+
+
+<h4 id="mtg_ai.cli.db" class="doc doc-heading">
+<code class="doc-symbol doc-symbol-heading doc-symbol-function"></code>            <code class="highlight language-python"><span class="n">db</span><span class="p">()</span></code>
+
+<a href="#mtg_ai.cli.db" class="headerlink" title="Permanent link">&para;</a></h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Database migration commands (data and app lineages).</p>
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="mtg_ai.cli.db_upgrade" class="doc doc-heading">
+<code class="doc-symbol doc-symbol-heading doc-symbol-function"></code>            <code class="highlight language-python"><span class="n">db_upgrade</span><span class="p">(</span><span class="n">lineage</span><span class="p">)</span></code>
+
+<a href="#mtg_ai.cli.db_upgrade" class="headerlink" title="Permanent link">&para;</a></h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Upgrade one or both lineages to the latest revision.</p>
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="mtg_ai.cli.db_downgrade" class="doc doc-heading">
+<code class="doc-symbol doc-symbol-heading doc-symbol-function"></code>            <code class="highlight language-python"><span class="n">db_downgrade</span><span class="p">(</span><span class="n">lineage</span><span class="p">,</span> <span class="n">revision</span><span class="p">)</span></code>
+
+<a href="#mtg_ai.cli.db_downgrade" class="headerlink" title="Permanent link">&para;</a></h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Downgrade a lineage to a revision.</p>
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="mtg_ai.cli.db_current" class="doc doc-heading">
+<code class="doc-symbol doc-symbol-heading doc-symbol-function"></code>            <code class="highlight language-python"><span class="n">db_current</span><span class="p">(</span><span class="n">lineage</span><span class="p">)</span></code>
+
+<a href="#mtg_ai.cli.db_current" class="headerlink" title="Permanent link">&para;</a></h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Show the current revision of one or both lineages.</p>
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="mtg_ai.cli.user" class="doc doc-heading">
+<code class="doc-symbol doc-symbol-heading doc-symbol-function"></code>            <code class="highlight language-python"><span class="n">user</span><span class="p">()</span></code>
+
+<a href="#mtg_ai.cli.user" class="headerlink" title="Permanent link">&para;</a></h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>User administration (out-of-band account provisioning).</p>
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="mtg_ai.cli.user_create" class="doc doc-heading">
+<code class="doc-symbol doc-symbol-heading doc-symbol-function"></code>            <code class="highlight language-python"><span class="n">user_create</span><span class="p">(</span><span class="n">username</span><span class="p">,</span> <span class="n">password</span><span class="p">)</span></code>
+
+<a href="#mtg_ai.cli.user_create" class="headerlink" title="Permanent link">&para;</a></h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Create a new application user.</p>
+<p>Accounts are provisioned here rather than through an open endpoint, so a
+self-hosted deployment has no unauthenticated account-creation surface.</p>
+
+
+    </div>
+
+</div>
+
 
 
   </div>
