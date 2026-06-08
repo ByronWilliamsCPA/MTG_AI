@@ -211,6 +211,37 @@ and either relax `extra="forbid"` for report types or exclude generated report t
 
 ---
 
+### `validate-cruft.yml` is a legacy check that blocks PRs on template drift
+
+- **Priority**: High
+- **Category**: CI/CD
+- **Discovered**: 2026-06-08
+
+**Issue**: The shipped `.github/workflows/validate-cruft.yml` runs `cruft check`
+on every push and pull request and exits non-zero when the project has drifted
+from the template, failing CI to "prevent merging out-of-date code". This
+cruft-drift gate is a legacy mechanism that is no longer used: projects
+intentionally diverge from the template over their lifetime (re-scopes,
+custom architecture), so a hard PR-blocking drift check produces a permanent
+red check unrelated to the PR under review.
+
+**Context**: Discovered on PR #5 (a two-line `renovate.json` change). The
+`validate-cruft` check went red purely because the template advanced since the
+project was generated, blocking an unrelated config PR. The check is not part
+of the org ruleset's required status contexts, so it is advisory noise rather
+than an enforced gate.
+
+**Suggested Fix**: Remove `validate-cruft.yml` from the template entirely.
+Template-sync is already handled by the two-part `.standards/` baseline system
+plus the `/merge-standards` flow, which does not require a blocking CI check.
+If a drift reminder is still desired, ship it as a schedule-only workflow that
+opens a tracking issue (the existing `schedule` branch already does this) and
+drop the `push`/`pull_request` triggers so it never blocks a PR.
+
+**Affected Files**: `.github/workflows/validate-cruft.yml`
+
+---
+
 ## Submitting Feedback
 
 Once you've collected feedback, you can:
