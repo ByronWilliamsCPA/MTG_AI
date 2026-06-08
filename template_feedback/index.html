@@ -1198,6 +1198,17 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#validate-cruftyml-is-a-legacy-check-that-blocks-prs-on-template-drift" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        validate-cruft.yml is a legacy check that blocks PRs on template drift
+      
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -1395,6 +1406,32 @@ and either relax <code>extra="forbid"</code> for report types or exclude generat
 (like <code>docs/planning/</code> is already excluded).</p>
 <p><strong>Affected Files</strong>: <code>tools/frontmatter_contract/models.py</code>, <code>docs/ADRs/adr-template.md</code></p>
 <hr />
+<h3 id="validate-cruftyml-is-a-legacy-check-that-blocks-prs-on-template-drift"><code>validate-cruft.yml</code> is a legacy check that blocks PRs on template drift<a class="headerlink" href="#validate-cruftyml-is-a-legacy-check-that-blocks-prs-on-template-drift" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Priority</strong>: High</li>
+<li><strong>Category</strong>: CI/CD</li>
+<li><strong>Discovered</strong>: 2026-06-08</li>
+</ul>
+<p><strong>Issue</strong>: The shipped <code>.github/workflows/validate-cruft.yml</code> runs <code>cruft check</code>
+on every push and pull request and exits non-zero when the project has drifted
+from the template, failing CI to "prevent merging out-of-date code". This
+cruft-drift gate is a legacy mechanism that is no longer used: projects
+intentionally diverge from the template over their lifetime (re-scopes,
+custom architecture), so a hard PR-blocking drift check produces a permanent
+red check unrelated to the PR under review.</p>
+<p><strong>Context</strong>: Discovered on PR #5 (a two-line <code>renovate.json</code> change). The
+<code>validate-cruft</code> check went red purely because the template advanced since the
+project was generated, blocking an unrelated config PR. The check is not part
+of the org ruleset's required status contexts, so it is advisory noise rather
+than an enforced gate.</p>
+<p><strong>Suggested Fix</strong>: Remove <code>validate-cruft.yml</code> from the template entirely.
+Template-sync is already handled by the two-part <code>.standards/</code> baseline system
+plus the <code>/merge-standards</code> flow, which does not require a blocking CI check.
+If a drift reminder is still desired, ship it as a schedule-only workflow that
+opens a tracking issue (the existing <code>schedule</code> branch already does this) and
+drop the <code>push</code>/<code>pull_request</code> triggers so it never blocks a PR.</p>
+<p><strong>Affected Files</strong>: <code>.github/workflows/validate-cruft.yml</code></p>
+<hr />
 <h2 id="submitting-feedback">Submitting Feedback<a class="headerlink" href="#submitting-feedback" title="Permanent link">&para;</a></h2>
 <p>Once you've collected feedback, you can:</p>
 <ol>
@@ -1425,7 +1462,7 @@ and either relax <code>extra="forbid"</code> for report types or exclude generat
     <span class="md-icon" title="Last update">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"/></svg>
     </span>
-    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="June 3, 2026 01:08:36 UTC">June 3, 2026</span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="June 8, 2026 14:13:34 UTC">June 8, 2026</span>
   </span>
 
     
