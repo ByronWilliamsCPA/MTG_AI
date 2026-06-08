@@ -1,0 +1,34 @@
+version: 2
+# Detection-only: Renovate is the sole PR-opener. open-pull-requests-limit: 0
+# suppresses Dependabot version-update PRs. Dependabot alerts (a repo setting)
+# remain the multi-ecosystem detection ledger.
+# NOTE: open-pull-requests-limit does NOT suppress Dependabot security-update
+# PRs (they run under a separate internal limit). The sole-PR-opener guarantee
+# therefore also depends on repo-level Dependabot security updates staying
+# disabled. Refs: standards CI-021 (amended), CI-074.
+updates:
+  - package-ecosystem: "pip"            # Python deps: pyproject.toml + uv.lock
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 0
+  - package-ecosystem: "github-actions" # workflow action pins: .github/workflows/
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 0
+  - package-ecosystem: "npm"            # frontend JS deps: frontend/package.json
+    directory: "/frontend"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 0
+  - package-ecosystem: "docker"         # root image base: Dockerfile
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 0
+  - package-ecosystem: "docker"         # frontend image base: frontend/Dockerfile
+    directory: "/frontend"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 0
