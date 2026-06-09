@@ -32,8 +32,8 @@ These were genuine architectural decisions and are recorded as ADRs:
 
 | Lesson (FluidDocs) | MTG AI adaptation | ADR |
 |--------------------|-------------------|-----|
-| Three independent reviewers (Brand, Copy, Layout), each owning one failure category, all must pass; spawned as parallel subagents when available | Decompose the deterministic review into independent, category-owning lenses over one deck snapshot, aggregated by a gate, run in parallel | [ADR-004](adr/adr-004-multi-lens-critique-reviewers.md) |
-| Type-correct deck spines: each deck type declares its own structure, not one generic template ("a pitch is not a sales deck") | Archetype-specific critique spines (turbo, stax, midrange, aggro) as versioned, effective-dated config the lenses evaluate against | [ADR-005](adr/adr-005-archetype-critique-spines.md) |
+| Three independent reviewers (Brand, Copy, Layout), each owning one failure category, all must pass; spawned as parallel subagents when available | Decompose the deterministic review into independent, category-owning lenses over one deck snapshot, aggregated by a gate, run sequentially in v1 (parallel execution deferred) | [ADR-004](adr/adr-004-multi-lens-critique-reviewers.md) |
+| Type-correct deck spines: each deck type declares its own structure, not one generic template ("a pitch is not a sales deck") | Archetype-specific critique spines (generic-midrange in v1; turbo/combo, stax/control, aggro deferred) as versioned, effective-dated config the lenses evaluate against | [ADR-005](adr/adr-005-archetype-critique-spines.md) |
 | Learn phase: every post-delivery issue is logged and becomes a new reviewer checklist item, so the process compounds | Append-only learnings log; each escaped misjudgment becomes a deterministic check or a golden regression fixture | [ADR-006](adr/adr-006-compounding-learnings-log.md) |
 
 ## Lessons Kept as Reference (Not Decisions)

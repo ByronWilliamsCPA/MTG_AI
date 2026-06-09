@@ -129,8 +129,8 @@ and must all pass before release.
 ### Trade-offs
 
 - A shared snapshot and aggregation schema couple the lenses: mitigated by the
-  small typed `DeckSnapshot` model defined above and a fixed lens-result contract
-  (verdict + observations + rules-version + spine-version).
+  small typed `DeckSnapshot` model defined below (see Implementation) and a fixed
+  lens-result contract (verdict + observations + rules-version + spine-version).
 
 ### Technical Debt
 
@@ -154,13 +154,15 @@ versioned, so its contents and ownership are fixed at this layer.
   `rules_version`, `spine_version` and `archetype` (ADR-005), and
   `classifier_version` (ADR-005). Any user override (e.g. a forced archetype) is
   captured here as a recorded input.
-- **Reproducibility invariant**: a review is a pure function of
-  `(DeckSnapshot, rules_version, spine_version, classifier_version)`. Identical
-  snapshots plus identical versions yield identical lens results regardless of
-  execution order.
+- **Reproducibility invariant**: a review is a pure function of the `DeckSnapshot`
+  alone, since the snapshot carries the full version vector above (`rules_version`,
+  `spine_version`, `archetype`, `classifier_version`). Identical snapshots yield
+  identical lens results regardless of execution order.
 - **Lens-result contract**: each lens returns `{lens, verdict, observations,
   rules_version, spine_version}` so every finding is attributable to its category
-  and its versioned inputs.
+  and its versioned inputs. The `archetype` and `classifier_version` needed for
+  full reproducibility live on the `DeckSnapshot`, not on each lens result, so
+  they are not repeated per lens.
 
 ### Components Affected
 
