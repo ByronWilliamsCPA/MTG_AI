@@ -150,5 +150,8 @@ model.**
 
 - [ADR-001: Architecture](../adr/adr-001-initial-architecture.md)
 - [ADR-002: Data Model](../adr/adr-002-data-model.md)
+- [ADR-004: Multi-Lens Critique Reviewers](../adr/adr-004-multi-lens-critique-reviewers.md)
+- [ADR-005: Archetype Critique Spines](../adr/adr-005-archetype-critique-spines.md)
+- [ADR-006: Compounding Learnings Log](../adr/adr-006-compounding-learnings-log.md)
 - [Technical Spec](../tech-spec.md)
 - [Project Vision](../project-vision.md)

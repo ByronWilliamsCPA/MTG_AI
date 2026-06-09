@@ -13,10 +13,10 @@ authors:
   - name: "Byron Williams"
 purpose: "Single source of truth for MTG AI implementation: phases, branches, acceptance criteria, quality gates, and task breakdowns"
 component: "Strategy"
-source: "Synthesized from project-vision.md, tech-spec.md, roadmap.md, adr-001, adr-002, adr-003 (2026-06-01)"
+source: "Synthesized from project-vision.md, tech-spec.md, roadmap.md, adr-001..003 (2026-06-01); amended for adr-004..006 (2026-06-08)"
 ---
 
-> **Status**: Active | **Version**: 1.0 | **Updated**: 2026-06-01
+> **Status**: Active | **Version**: 1.1 | **Updated**: 2026-06-08
 >
 > Synthesized from:
 > [project-vision.md](./project-vision.md),
@@ -24,7 +24,15 @@ source: "Synthesized from project-vision.md, tech-spec.md, roadmap.md, adr-001, 
 > [roadmap.md](./roadmap.md),
 > [ADR-001](./adr/adr-001-initial-architecture.md),
 > [ADR-002](./adr/adr-002-data-model.md),
-> [ADR-003](./adr/adr-003-engine-approach.md)
+> [ADR-003](./adr/adr-003-engine-approach.md),
+> [ADR-004](./adr/adr-004-multi-lens-critique-reviewers.md),
+> [ADR-005](./adr/adr-005-archetype-critique-spines.md),
+> [ADR-006](./adr/adr-006-compounding-learnings-log.md)
+>
+> **v1.1 amendment (2026-06-08)**: ADR-004/005/006 accepted after a multi-lens
+> panel review and threaded into the phases below. ADR-005 and ADR-006 are
+> deliberately scoped down for v1 (one archetype spine + override; capture-only
+> learnings log) to bound solo-maintainer cost.
 
 **Project**: MTG AI
 **Repository**: https://github.com/ByronWilliamsCPA/MTG_AI
@@ -149,6 +157,39 @@ exist as precomputed data. Determinism guarantees correctness and reproducibilit
 bounding the LLM to explanation keeps it off the correctness path and bounds cost.
 
 Reference: [adr-003-engine-approach.md](./adr/adr-003-engine-approach.md)
+
+### ADR-004/005/006: Critique Structure, Archetype Spines, and the Learnings Loop
+
+**Decision**: Three accepted refinements of the deterministic engine, all behind
+the ADR-003 boundary (the LLM still only explains). (004) The scorecard is built
+as independent, category-owning **lenses** over one app-owned, versioned
+`DeckSnapshot`, aggregated by a gate; lenses are pure functions and run
+sequentially in v1. (005) Lenses read **archetype spines** (role targets,
+thresholds, weights) as effective-dated, data-owned config; v1 ships a single
+generic-midrange spine plus a user override, deferring the deterministic
+classifier and additional spines. (006) Flagged reviews append to an **app-owned,
+user-scoped learnings log** referencing the reproducing snapshot; v1 captures
+entries, while triage into checks/fixtures and the CI-regression meta-test land
+in Phase 4.
+
+**Rationale**: Attributable lenses remove single-pass blind spots and parallelize
+later for free; archetype-as-data stops the engine from scoring every deck against
+one mean; the learnings log makes review quality compound. The v1 scope-downs keep
+the architectural seams (snapshot, spine-as-config, app-owned log) while bounding
+solo-maintainer cost. The snapshot carries the full version vector
+(`rules_version`, `spine_version`, `archetype`, `classifier_version`) so reviews
+stay reproducible.
+
+> **RAD** `#CRITICAL` data-integrity/concurrency: lenses are pure functions of the
+> versioned `DeckSnapshot`, so reviews reproduce regardless of execution order.
+> `#CRITICAL` security/privacy: the learnings log is user-scoped, consent-gated, and
+> retention-bounded. `#VERIFY`: enforced by the per-lens property tests, the snapshot
+> reproducibility test, and the feedback-route consent checks specified in ADR-004
+> and ADR-006.
+
+References: [adr-004](./adr/adr-004-multi-lens-critique-reviewers.md),
+[adr-005](./adr/adr-005-archetype-critique-spines.md),
+[adr-006](./adr/adr-006-compounding-learnings-log.md)
 
 ---
 
@@ -352,7 +393,8 @@ Traced to [roadmap.md Phase 1 deliverables](./roadmap.md):
   (theme/role buckets). Polite cache; no redistribution.
 - `ingestion/spellbook`: combos (`CardCombo`), bracket estimate reference data.
 - `reference_config`: versioned, effective-dated `GameChanger` and `BracketDef` records;
-  refreshable independent of card data.
+  refreshable independent of card data. Includes the effective-dated **archetype
+  spine** schema with one seeded generic-midrange spine (ADR-005, data-owned).
 - `scheduler` with set-release vs daily cadence; `IngestReport` per run.
 - CLI commands: `mtg-ai sync cards`, `mtg-ai sync edhrec`, `mtg-ai sync rules`.
 
@@ -418,13 +460,21 @@ Traced to [roadmap.md Phase 2 deliverables](./roadmap.md):
   unresolved names surfaced, never guessed.
 - `rules`: deterministic legality/identity gate. Developed with TDD and property-based
   tests (Hypothesis). No LLM involvement.
-- `scorecard`: functional power (Disciple-of-the-Vault 1-10); bracket placement (gate
-  logic over versioned Game Changers); role coverage vs archetype targets; Karsten
-  manabase check using `Card.mana_cost` pips and land `Card.produced_mana`. Synergy
-  and average lift reported separately, never blended into the power score.
+- `scorecard` built as independent, category-owning **lenses** (legality/identity,
+  power/bracket, consistency/manabase, interaction/role, wincon/combo) over one
+  `DeckSnapshot`, composed by an **aggregator** that enforces the legality gate
+  first (ADR-004): functional power (Disciple-of-the-Vault 1-10); bracket placement
+  (gate logic over versioned Game Changers); role coverage vs the resolved archetype
+  spine (ADR-005, generic-midrange or user override in v1); Karsten manabase check
+  using `Card.mana_cost` pips and land `Card.produced_mana`. Synergy and average lift
+  reported separately, never blended into the power score. Lenses run sequentially.
+- `DeckSnapshot`: app-owned, persisted resolved-deck artifact carrying the version
+  vector (`rules_version`, `spine_version`, `archetype`, `classifier_version`); the
+  shared reproducibility contract for scoring and the Phase 3 learnings log.
 - `POST /api/v1/decks/import` and `GET /api/v1/decks/{id}` (owner only).
 - `POST /api/v1/decks/{id}/review`: returns scorecard only; persists `DeckReview`
-  with `rules_version`; suggestions and collection added in Phase 3.
+  with the `DeckSnapshot` and `rules_version`; suggestions and collection added in
+  Phase 3.
 
 #### Acceptance Criteria
 
@@ -504,7 +554,10 @@ Traced to [roadmap.md Phase 3 deliverables](./roadmap.md):
   response without prose.
 - Frontend: React 18 + Vite; import view, collection view, and review view with
   accept/reject controls and value-per-dollar sort.
-- `POST /api/v1/reviews/{id}/feedback`: persist accept/reject labels.
+- `POST /api/v1/reviews/{id}/feedback`: persist accept/reject labels and a
+  `flagged` field/reason. A flagged review appends an entry to the app-owned,
+  user-scoped **learnings log** referencing the `DeckSnapshot` (ADR-006, capture
+  only; triage deferred to Phase 4).
 - One Playwright happy-path e2e: import deck -> review -> feedback.
 
 #### Acceptance Criteria
@@ -573,6 +626,10 @@ Traced to [roadmap.md Phase 4 deliverables](./roadmap.md):
 
 - Promote the Phase 2 eval harness to a CI regression gate on review quality:
   known decks with expected cuts/adds run on every CI build.
+- Learnings-log **triage workflow** (ADR-006): convert each captured entry into a
+  lens check or a golden regression fixture; a meta-test asserts no entry sits
+  captured-but-unresolved beyond a grace window. This backlog-policing test is
+  gated to Phase 4 so it never blocks CI in earlier phases.
 - Per-user rate limit and LLM cost guard.
 - Structured JSON logging with correlation IDs; secrets never logged.
 - Coverage >= 80% overall, >= 90% on `rules` and `scorecard`; security review clean.
@@ -710,6 +767,6 @@ CI
 
 ---
 
-**Last Updated**: 2026-06-01
+**Last Updated**: 2026-06-08
 **Next Review**: Before Phase 1 kickoff (or after any roadmap change)
 **Approved By**: Byron Williams (core-maintainer)
