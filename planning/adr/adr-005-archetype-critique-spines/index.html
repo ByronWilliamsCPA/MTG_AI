@@ -12,7 +12,7 @@
         <meta name="author" content="Byron Williams">
       
       
-        <link rel="canonical" href="https://MTG_AI.readthedocs.io/planning/adr/adr-003-engine-approach/">
+        <link rel="canonical" href="https://MTG_AI.readthedocs.io/planning/adr/adr-005-archetype-critique-spines/">
       
       
       
@@ -25,7 +25,7 @@
     
     
       
-        <title>ADR-003: Deterministic Scorecard Engine, LLM for Explanation - MTG AI</title>
+        <title>ADR-005: Archetype-Specific Critique Spines - MTG AI</title>
       
     
     
@@ -122,7 +122,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              ADR-003: Deterministic Scorecard Engine, LLM for Explanation
+              ADR-005: Archetype-Specific Critique Spines
             
           </span>
         </div>
@@ -1200,10 +1200,10 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#option-1-deterministic-scorecard-llm-explains-chosen" class="md-nav__link">
+  <a href="#option-1-archetype-specific-spines-as-versioned-config-chosen" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Option 1: Deterministic scorecard, LLM explains (chosen)
+        Option 1: Archetype-specific spines as versioned config (chosen)
       
     </span>
   </a>
@@ -1211,10 +1211,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#option-2-rag-llm-as-the-scoringcritique-core" class="md-nav__link">
+  <a href="#option-2-one-universal-role-coverage-rubric" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Option 2: RAG + LLM as the scoring/critique core
+        Option 2: One universal role-coverage rubric
       
     </span>
   </a>
@@ -1222,10 +1222,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#option-3-train-or-fine-tune-a-model-now" class="md-nav__link">
+  <a href="#option-3-let-the-llm-infer-archetype-expectations-per-review" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Option 3: Train or fine-tune a model now
+        Option 3: Let the LLM infer archetype expectations per review
       
     </span>
   </a>
@@ -1298,6 +1298,17 @@
   
     <nav class="md-nav" aria-label="Implementation">
       <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#v1-scope-what-ships-first" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        v1 Scope (what ships first)
+      
+    </span>
+  </a>
+  
+</li>
         
           <li class="md-nav__item">
   <a href="#components-affected" class="md-nav__link">
@@ -1385,138 +1396,185 @@
   
 
 
-  <h1>ADR-003: Deterministic Scorecard Engine, LLM for Explanation</h1>
+  <h1>ADR-005: Archetype-Specific Critique Spines</h1>
 
 <blockquote>
 <p><strong>Status</strong>: Accepted
-<strong>Date</strong>: 2026-06-01
-<strong>Supersedes</strong>: None</p>
+<strong>Date</strong>: 2026-06-08 (proposed 2026-06-06)
+<strong>Supersedes</strong>: None
+<strong>Decision note</strong>: Accepted after the 2026-06-08 multi-lens panel review. The
+architecturally expensive part, archetype targets as effective-dated config the
+lenses read (the "spine seam"), is adopted now because retrofitting it is
+costly. The implementation is deliberately scoped down for v1 (see
+"v1 scope" below): a single generic-midrange spine plus a user-supplied
+archetype override, with the deterministic classifier and the multi-archetype
+spine library deferred until real reviews justify them. This bounds the ongoing
+meta-curation burden the feasibility lens flagged as the single largest
+solo-maintainer risk in the set.</p>
 </blockquote>
 <h2 id="tldr">TL;DR<a class="headerlink" href="#tldr" title="Permanent link">&para;</a></h2>
-<p>The v1 engine is deterministic: it scores legality, power, bracket, role
-coverage, and manabase from reused precomputed data, and ranks upgrade
-suggestions. The LLM only explains the result in plain language; embeddings and
-RAG are deferred to v2.</p>
+<p>The review evaluates a deck against an archetype-specific spine of role targets,
+thresholds, and lens weights stored as versioned, effective-dated config, rather
+than against one universal rubric. The lenses read the resolved spine as data.
+v1 ships one generic-midrange spine plus a user override; deterministic
+archetype classification and additional archetype spines (turbo/combo,
+stax/control, aggro) are added incrementally post-v1.</p>
 <h2 id="context">Context<a class="headerlink" href="#context" title="Permanent link">&para;</a></h2>
 <h3 id="problem">Problem<a class="headerlink" href="#problem" title="Permanent link">&para;</a></h3>
-<p>A deck review must be trustworthy: legality-correct, bracket-aware, and
-reproducible. The research shows the hard signals already exist as precomputed
-data (EDHREC synergy/inclusion/lift, Commander Spellbook combos and bracket
-estimate, Scryfall/MTGJSON inventory and legality) and that the scoring logic
-(Disciple-of-the-Vault power, WotC bracket gate logic, role-coverage targets,
-Karsten manabase math) is deterministic. We must decide what computes the
-scorecard and where, if anywhere, a language model fits.</p>
+<p><a href="../adr-003-engine-approach/">ADR-003</a> scores "role coverage vs archetype
+targets" but leaves the targets implicit. A single universal rubric misjudges
+decks whose strategy intentionally departs from the average: a turbo deck running
+light interaction is not under-built, and a stax deck with few creatures is not
+short on threats. Without archetype-aware expectations, the lenses from
+<a href="../adr-004-multi-lens-critique-reviewers/">ADR-004</a> flag intended choices
+as faults.</p>
 <h3 id="constraints">Constraints<a class="headerlink" href="#constraints" title="Permanent link">&para;</a></h3>
 <ul>
-<li><strong>Technical</strong>: legality and bracket placement cannot tolerate hallucination;
-  reviews must be reproducible; single small box, few users, cheap to run.</li>
-<li><strong>Business</strong>: single maintainer; ship the Commander review loop first.</li>
+<li><strong>Technical</strong>: archetype targets change as the meta shifts and must be
+  reproducible against a review's run date; classification must be deterministic
+  and cheap; lenses consume the spine, not hard-coded constants.</li>
+<li><strong>Business</strong>: single maintainer; spines must be editable as data, not code.</li>
 </ul>
 <h3 id="significance">Significance<a class="headerlink" href="#significance" title="Permanent link">&para;</a></h3>
-<p>This choice sets the trust model and the v1 build size; reversing it would
-re-found the whole pipeline.</p>
+<p>The spine defines what "good" means per strategy; baking the wrong expectations
+into the lenses produces confidently wrong reviews and erodes trust.</p>
 <h2 id="decision">Decision<a class="headerlink" href="#decision" title="Permanent link">&para;</a></h2>
-<p><strong>The v1 engine is a deterministic scorecard over reused precomputed data, and
-the LLM is explanation-only behind a swappable generator interface, because the
-authoritative signals already exist and correctness must never depend on a
-model.</strong></p>
+<p><strong>We make archetype-specific spines first-class, versioned config that the lenses
+evaluate against, because a pitch is not a sales deck and a turbo list is not a
+stax list: each archetype has different success criteria.</strong> This adapts the
+FluidDocs deck-builder's type-correct deck spines, where each deck type declares
+its own structure rather than inheriting one generic template.</p>
 <h3 id="rationale">Rationale<a class="headerlink" href="#rationale" title="Permanent link">&para;</a></h3>
 <ul>
-<li><strong>Deterministic truth</strong>: a legality/identity gate, functional power (1-10),
-  bracket gate logic over the versioned Game Changers list, role coverage vs
-  archetype targets, and a Karsten manabase check produce identical output for
-  identical inputs and rules-version.</li>
-<li><strong>Suggestions are deterministic too</strong>: cuts/adds come from underfilled roles
-  and bracket mismatches, ranked by commander synergy and lift, each re-validated
-  for legality, then annotated with ownership and price for value-per-dollar
-  sorting.</li>
-<li><strong>LLM explains, never decides</strong>: the generator turns the scorecard into prose;
-  it cannot change a score, legality, or bracket. The interface stays swappable
-  so a later model (or none) is a drop-in.</li>
-<li><strong>Defer embeddings</strong>: card2vec-style retrieval finds relationships the
-  per-commander view misses, but the existing stats cover v1; embeddings are a
-  v2 enhancement, not a dependency.</li>
+<li><strong>Deterministic classification (post-v1)</strong>: a deck's archetype is inferred from
+  its commander, role distribution, and combo presence by explicit rules, with a
+  declared fallback (generic midrange spine) when confidence is low. Because the
+  classifier is code, not effective-dated data, the ADR-002 reproducibility
+  guarantee does not cover it automatically: the snapshot therefore records a
+  <code>classifier_version</code> alongside <code>rules_version</code> and <code>spine_version</code>, so a
+  classifier rule change cannot silently alter a past review for identical
+  inputs. The chosen archetype, spine version, and classifier version are all
+  recorded on the review (in the <code>DeckSnapshot</code> defined in ADR-004).</li>
 </ul>
+<blockquote>
+<p><strong>RAD</strong> <code>#CRITICAL</code> data-integrity: a classifier-code change must not silently
+alter a past review for identical inputs (ADR-002 effective-dating covers data,
+not code). <code>#VERIFY</code>: <code>classifier_version</code> is recorded on the snapshot and a
+golden test asserts a past review re-runs to the same archetype under a bumped
+classifier (see Success Criteria below).
+- <strong>Spine as data</strong>: each spine declares role targets (ramp, interaction, card
+  advantage, threats, win lines), thresholds, and per-lens weights; spines carry
+  effective dates exactly like the bracket rules and Game Changers list in
+  <a href="../adr-002-data-model/">ADR-002</a>, so old reviews stay reproducible.
+  Spines are <strong>data-owned</strong> reference config (written only by the data service,
+  read by the app via <code>SELECT</code>), consistent with the single-writer rule in
+  <a href="../adr-001-initial-architecture/">ADR-001</a>.
+- <strong>Lenses read the spine</strong>: the ADR-004 lenses take the resolved spine as input;
+  the same lens code judges a turbo and a stax deck differently because the
+  targets differ, not because the code branches.
+- <strong>Explainable departures</strong>: a deviation from a spine target is surfaced as an
+  observation tied to the archetype, never as a silent penalty.</p>
+</blockquote>
 <h2 id="options-considered">Options Considered<a class="headerlink" href="#options-considered" title="Permanent link">&para;</a></h2>
-<h3 id="option-1-deterministic-scorecard-llm-explains-chosen">Option 1: Deterministic scorecard, LLM explains (chosen)<a class="headerlink" href="#option-1-deterministic-scorecard-llm-explains-chosen" title="Permanent link">&para;</a></h3>
+<h3 id="option-1-archetype-specific-spines-as-versioned-config-chosen">Option 1: Archetype-specific spines as versioned config (chosen)<a class="headerlink" href="#option-1-archetype-specific-spines-as-versioned-config-chosen" title="Permanent link">&para;</a></h3>
 <p><strong>Pros</strong>:</p>
 <ul>
-<li>Legality and bracket are guaranteed, reproducible, and cheap.</li>
-<li>Little ML for v1; most work is ingestion and deterministic math.</li>
-<li>LLM cost is bounded and off the correctness path.</li>
+<li>Reviews respect strategy; intended departures are not flagged as faults.</li>
+<li>Spines are editable data with effective dates; reproducible and meta-aware.</li>
+<li>Lens code stays generic; only the targets vary.</li>
 </ul>
 <p><strong>Cons</strong>:</p>
 <ul>
-<li>Scoring heuristics need hand-tuning and periodic rules refresh.</li>
+<li>A classifier and a curated spine library to build and keep current.</li>
 </ul>
-<h3 id="option-2-rag-llm-as-the-scoringcritique-core">Option 2: RAG + LLM as the scoring/critique core<a class="headerlink" href="#option-2-rag-llm-as-the-scoringcritique-core" title="Permanent link">&para;</a></h3>
+<h3 id="option-2-one-universal-role-coverage-rubric">Option 2: One universal role-coverage rubric<a class="headerlink" href="#option-2-one-universal-role-coverage-rubric" title="Permanent link">&para;</a></h3>
 <p><strong>Pros</strong>:</p>
 <ul>
-<li>Flexible natural-language reasoning; less explicit rule code.</li>
+<li>Nothing new to classify or curate.</li>
 </ul>
 <p><strong>Cons</strong>:</p>
 <ul>
-<li>Hallucinated or illegal suggestions; non-reproducible; per-review LLM cost on
-  the hot path; ignores that the signals are already computed.</li>
+<li>Misjudges any deck that intentionally deviates from the average; pushes every
+  deck toward a single generic shape.</li>
 </ul>
-<h3 id="option-3-train-or-fine-tune-a-model-now">Option 3: Train or fine-tune a model now<a class="headerlink" href="#option-3-train-or-fine-tune-a-model-now" title="Permanent link">&para;</a></h3>
+<h3 id="option-3-let-the-llm-infer-archetype-expectations-per-review">Option 3: Let the LLM infer archetype expectations per review<a class="headerlink" href="#option-3-let-the-llm-infer-archetype-expectations-per-review" title="Permanent link">&para;</a></h3>
 <p><strong>Pros</strong>:</p>
 <ul>
-<li>Could internalize synergy and power judgment.</li>
+<li>No spine library to maintain.</li>
 </ul>
 <p><strong>Cons</strong>:</p>
 <ul>
-<li>No labeled corpus yet; premature and expensive. The review logs accumulate
-  that corpus for a possible future phase.</li>
+<li>Non-reproducible and unversioned; puts judgment back on the model, violating
+  ADR-003.</li>
 </ul>
 <h2 id="consequences">Consequences<a class="headerlink" href="#consequences" title="Permanent link">&para;</a></h2>
 <h3 id="positive">Positive<a class="headerlink" href="#positive" title="Permanent link">&para;</a></h3>
 <ul>
-<li>The "LLM proposes, deterministic code disposes" seam holds: suggestions are
-  re-validated before display.</li>
-<li>Review p95 is fast (DB lookups + math, not an LLM call).</li>
-<li>Review logs capture inputs, scores, and accept/reject as a future training set.</li>
+<li>Suggestions move a deck toward its own archetype's targets, not a generic mean.</li>
+<li>Spines version and refresh with the meta without code changes.</li>
+<li>Misclassification is visible (the spine is on the review) and correctable.</li>
 </ul>
 <h3 id="trade-offs">Trade-offs<a class="headerlink" href="#trade-offs" title="Permanent link">&para;</a></h3>
 <ul>
-<li>Heuristic scores are tuning guides, not playtesting; surface them as such.</li>
-<li>The bracket system is beta; gate rules and the Game Changers list live in
-  refreshable, effective-dated config (see <a href="../adr-002-data-model/">ADR-002</a>).</li>
+<li>A wrong archetype call skews the whole review: mitigated by recording the spine,
+  a conservative fallback, and letting the user override the detected archetype.</li>
 </ul>
 <h3 id="technical-debt">Technical Debt<a class="headerlink" href="#technical-debt" title="Permanent link">&para;</a></h3>
 <ul>
-<li>Functional tagging reliability is the weak point; EDHREC/Scryfall tags cover
-  most cards but need hand-correction at the edges.</li>
+<li>Hybrid and transitional archetypes resist single-label classification; may need
+  blended spines or a confidence band later.</li>
 </ul>
 <h2 id="implementation">Implementation<a class="headerlink" href="#implementation" title="Permanent link">&para;</a></h2>
+<h3 id="v1-scope-what-ships-first">v1 Scope (what ships first)<a class="headerlink" href="#v1-scope-what-ships-first" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Ship now</strong>: the spine config schema (effective-dated, data-owned), a single
+  generic-midrange spine seeded in <code>reference_config</code>, the lenses reading the
+  resolved spine instead of hard-coded constants, and a user-supplied archetype
+  override persisted as a review input. This is the full architectural seam at
+  minimal curation cost.</li>
+<li><strong>Defer (add incrementally post-v1, one per real misjudgment)</strong>: the
+  deterministic <code>archetype-classifier</code> and the additional archetype spines
+  (turbo/combo, stax/control, aggro). Until the classifier exists, the archetype
+  is either the generic-midrange default or the user override. Adding a spine or
+  the classifier later does not change the contract, only the data and one
+  app-side module.</li>
+</ul>
 <h3 id="components-affected">Components Affected<a class="headerlink" href="#components-affected" title="Permanent link">&para;</a></h3>
 <ol>
-<li><strong>scorecard</strong>: deterministic scoring modules (power, bracket, role, manabase).</li>
-<li><strong>suggestions</strong>: role-gap and bracket-driven ranker with re-validation and
-   ownership/price annotation.</li>
-<li><strong>generator</strong>: swappable LLM explanation backend (no scoring authority).</li>
+<li><strong>spine config</strong> (v1): effective-dated archetype spines (targets, thresholds,
+   weights) in refreshable, data-owned config, owned like the bracket rules in
+   ADR-002. v1 seeds one generic-midrange spine.</li>
+<li><strong>lenses</strong> (v1): consume the resolved spine instead of universal constants.</li>
+<li><strong>user override</strong> (v1): a user-forced archetype, captured in the <code>DeckSnapshot</code>
+   (ADR-004) as a recorded input so re-runs are reproducible.</li>
+<li><strong>archetype-classifier</strong> (post-v1): deterministic archetype inference with a
+   low-confidence fallback to the generic-midrange spine; records
+   <code>classifier_version</code> on the review.</li>
 </ol>
 <h3 id="testing-strategy">Testing Strategy<a class="headerlink" href="#testing-strategy" title="Permanent link">&para;</a></h3>
 <ul>
-<li>Unit + property-based tests on the legality gate and scoring (golden decks);
-  mock the generator and assert it cannot alter a score or legality verdict.</li>
+<li>Golden decks per archetype assert the expected spine is selected and that a
+  deliberately archetype-correct light-interaction deck is not penalized for it.</li>
 </ul>
 <h2 id="validation">Validation<a class="headerlink" href="#validation" title="Permanent link">&para;</a></h2>
 <h3 id="success-criteria">Success Criteria<a class="headerlink" href="#success-criteria" title="Permanent link">&para;</a></h3>
 <ul class="task-list">
-<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Identical inputs and rules-version yield identical scorecards.</li>
-<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Every suggested add passes legality re-validation.</li>
-<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Disabling the LLM still produces a complete scorecard and suggestions.</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Every review records the archetype, spine version, and (once the classifier
+      ships) classifier version it used, on the <code>DeckSnapshot</code>.</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> An archetype-correct deck is not flagged for an intended, on-spine choice.</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> A user can override the archetype; the override is persisted as a review
+      input and the review re-runs reproducibly.</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> v1 acceptance: lenses read the generic-midrange spine from config (no
+      hard-coded role constants); a user override selects an alternate spine when
+      one exists.</li>
 </ul>
 <h2 id="related">Related<a class="headerlink" href="#related" title="Permanent link">&para;</a></h2>
 <ul>
-<li><a href="../adr-001-initial-architecture/">ADR-001: Architecture</a></li>
 <li><a href="../adr-002-data-model/">ADR-002: Data Model</a></li>
+<li><a href="../adr-003-engine-approach/">ADR-003: Engine Approach</a></li>
 <li><a href="../adr-004-multi-lens-critique-reviewers/">ADR-004: Multi-Lens Critique Reviewers</a></li>
-<li><a href="../adr-005-archetype-critique-spines/">ADR-005: Archetype Critique Spines</a></li>
-<li><a href="../adr-006-compounding-learnings-log/">ADR-006: Compounding Learnings Log</a></li>
+<li><a href="../../fluiddocs-deck-builder-review/">FluidDocs Deck-Builder Review</a></li>
 <li><a href="../../tech-spec/">Technical Spec</a></li>
-<li><a href="../../project-vision/">Project Vision</a></li>
 </ul>
 
 
@@ -1550,7 +1608,7 @@ model.</strong></p>
     <span class="md-icon" title="Created">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M14.47 15.08 11 13V7h1.5v5.25l3.08 1.83c-.41.28-.79.62-1.11 1m-1.39 4.84c-.36.05-.71.08-1.08.08-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8c0 .37-.03.72-.08 1.08.69.1 1.33.32 1.92.64.1-.56.16-1.13.16-1.72 0-5.5-4.5-10-10-10S2 6.5 2 12s4.47 10 10 10c.59 0 1.16-.06 1.72-.16-.32-.59-.54-1.23-.64-1.92M18 15v3h-3v2h3v3h2v-3h3v-2h-3v-3z"/></svg>
     </span>
-    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="June 3, 2026 01:08:36 UTC">June 3, 2026</span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="June 9, 2026 17:11:53 UTC">June 9, 2026</span>
   </span>
 
     

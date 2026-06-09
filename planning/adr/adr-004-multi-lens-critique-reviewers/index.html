@@ -12,7 +12,7 @@
         <meta name="author" content="Byron Williams">
       
       
-        <link rel="canonical" href="https://MTG_AI.readthedocs.io/planning/adr/adr-003-engine-approach/">
+        <link rel="canonical" href="https://MTG_AI.readthedocs.io/planning/adr/adr-004-multi-lens-critique-reviewers/">
       
       
       
@@ -25,7 +25,7 @@
     
     
       
-        <title>ADR-003: Deterministic Scorecard Engine, LLM for Explanation - MTG AI</title>
+        <title>ADR-004: Multi-Lens Critique Reviewers Over the Scorecard - MTG AI</title>
       
     
     
@@ -122,7 +122,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              ADR-003: Deterministic Scorecard Engine, LLM for Explanation
+              ADR-004: Multi-Lens Critique Reviewers Over the Scorecard
             
           </span>
         </div>
@@ -1200,10 +1200,10 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#option-1-deterministic-scorecard-llm-explains-chosen" class="md-nav__link">
+  <a href="#option-1-independent-category-owning-lenses-gate-chosen" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Option 1: Deterministic scorecard, LLM explains (chosen)
+        Option 1: Independent category-owning lenses + gate (chosen)
       
     </span>
   </a>
@@ -1211,10 +1211,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#option-2-rag-llm-as-the-scoringcritique-core" class="md-nav__link">
+  <a href="#option-2-single-monolithic-scorer" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Option 2: RAG + LLM as the scoring/critique core
+        Option 2: Single monolithic scorer
       
     </span>
   </a>
@@ -1222,10 +1222,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#option-3-train-or-fine-tune-a-model-now" class="md-nav__link">
+  <a href="#option-3-llm-orchestrated-multi-agent-critique" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Option 3: Train or fine-tune a model now
+        Option 3: LLM-orchestrated multi-agent critique
       
     </span>
   </a>
@@ -1298,6 +1298,17 @@
   
     <nav class="md-nav" aria-label="Implementation">
       <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#deck-snapshot-contract-shared-with-adr-005-and-adr-006" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Deck Snapshot Contract (shared with ADR-005 and ADR-006)
+      
+    </span>
+  </a>
+  
+</li>
         
           <li class="md-nav__item">
   <a href="#components-affected" class="md-nav__link">
@@ -1385,138 +1396,191 @@
   
 
 
-  <h1>ADR-003: Deterministic Scorecard Engine, LLM for Explanation</h1>
+  <h1>ADR-004: Multi-Lens Critique Reviewers Over the Scorecard</h1>
 
 <blockquote>
 <p><strong>Status</strong>: Accepted
-<strong>Date</strong>: 2026-06-01
-<strong>Supersedes</strong>: None</p>
+<strong>Date</strong>: 2026-06-08 (proposed 2026-06-06)
+<strong>Supersedes</strong>: None
+<strong>Decision note</strong>: Accepted after a multi-lens panel review on 2026-06-08
+(roadmap-fit, architecture-coherence, and solo-maintainer-feasibility lenses).
+Scoped for v1: the lenses run sequentially; concurrent execution is a recorded
+future option, not a v1 requirement. The shared <code>DeckSnapshot</code> contract below
+is the reconciliation point for ADR-005 and ADR-006.</p>
 </blockquote>
 <h2 id="tldr">TL;DR<a class="headerlink" href="#tldr" title="Permanent link">&para;</a></h2>
-<p>The v1 engine is deterministic: it scores legality, power, bracket, role
-coverage, and manabase from reused precomputed data, and ranks upgrade
-suggestions. The LLM only explains the result in plain language; embeddings and
-RAG are deferred to v2.</p>
+<p>The deterministic review is composed of independent, category-owning lenses
+(legality/identity, power/bracket, consistency/manabase, interaction/role,
+wincon/combo), each emitting its own verdict and observations over a single
+versioned deck snapshot, aggregated by a gate; the lenses are pure functions of
+that snapshot. They run sequentially in v1 (parallel execution is a recorded
+future option), with the LLM explanation remaining the only swappable, off-path
+step.</p>
 <h2 id="context">Context<a class="headerlink" href="#context" title="Permanent link">&para;</a></h2>
 <h3 id="problem">Problem<a class="headerlink" href="#problem" title="Permanent link">&para;</a></h3>
-<p>A deck review must be trustworthy: legality-correct, bracket-aware, and
-reproducible. The research shows the hard signals already exist as precomputed
-data (EDHREC synergy/inclusion/lift, Commander Spellbook combos and bracket
-estimate, Scryfall/MTGJSON inventory and legality) and that the scoring logic
-(Disciple-of-the-Vault power, WotC bracket gate logic, role-coverage targets,
-Karsten manabase math) is deterministic. We must decide what computes the
-scorecard and where, if anywhere, a language model fits.</p>
+<p><a href="../adr-003-engine-approach/">ADR-003</a> fixed the engine as a deterministic
+scorecard with the LLM explaining, not deciding. It did not fix how the scoring
+is internally organized. A single monolithic scorer concentrates every failure
+category (an illegal card, a flat curve, missing interaction, no win line) into
+one code path and one verdict, which is hard to test, hard to attribute, and
+prone to one category masking another.</p>
 <h3 id="constraints">Constraints<a class="headerlink" href="#constraints" title="Permanent link">&para;</a></h3>
 <ul>
-<li><strong>Technical</strong>: legality and bracket placement cannot tolerate hallucination;
-  reviews must be reproducible; single small box, few users, cheap to run.</li>
-<li><strong>Business</strong>: single maintainer; ship the Commander review loop first.</li>
+<li><strong>Technical</strong>: verdicts must be reproducible and attributable to a specific
+  category; the lenses read the same versioned data and rules state; single small
+  box, latency sensitive.</li>
+<li><strong>Business</strong>: single maintainer; the structure must make failures easy to
+  locate and easy to add to over time.</li>
 </ul>
 <h3 id="significance">Significance<a class="headerlink" href="#significance" title="Permanent link">&para;</a></h3>
-<p>This choice sets the trust model and the v1 build size; reversing it would
-re-found the whole pipeline.</p>
+<p>How the review is decomposed sets the testing seams, the parallelism, and how
+suggestions are attributed; reworking it later re-touches every scoring module.</p>
 <h2 id="decision">Decision<a class="headerlink" href="#decision" title="Permanent link">&para;</a></h2>
-<p><strong>The v1 engine is a deterministic scorecard over reused precomputed data, and
-the LLM is explanation-only behind a swappable generator interface, because the
-authoritative signals already exist and correctness must never depend on a
-model.</strong></p>
+<p><strong>We decompose the review into independent, category-owning lenses over one
+immutable deck snapshot, aggregated by a gate, because independent lenses remove
+single-pass blind spots, attribute each finding to a category, and parallelize
+cleanly.</strong> The pattern is adapted from the FluidDocs deck-builder's three
+independent reviewers (Brand, Copy, Layout) that each own one failure category
+and must all pass before release.</p>
 <h3 id="rationale">Rationale<a class="headerlink" href="#rationale" title="Permanent link">&para;</a></h3>
 <ul>
-<li><strong>Deterministic truth</strong>: a legality/identity gate, functional power (1-10),
-  bracket gate logic over the versioned Game Changers list, role coverage vs
-  archetype targets, and a Karsten manabase check produce identical output for
-  identical inputs and rules-version.</li>
-<li><strong>Suggestions are deterministic too</strong>: cuts/adds come from underfilled roles
-  and bracket mismatches, ranked by commander synergy and lift, each re-validated
-  for legality, then annotated with ownership and price for value-per-dollar
-  sorting.</li>
-<li><strong>LLM explains, never decides</strong>: the generator turns the scorecard into prose;
-  it cannot change a score, legality, or bracket. The interface stays swappable
-  so a later model (or none) is a drop-in.</li>
-<li><strong>Defer embeddings</strong>: card2vec-style retrieval finds relationships the
-  per-commander view misses, but the existing stats cover v1; embeddings are a
-  v2 enhancement, not a dependency.</li>
+<li><strong>One snapshot, many lenses</strong>: each lens reads the same resolved deck (cards by
+  <code>oracle_id</code>, commander, rules-version) and owns exactly one failure category,
+  so no lens can silently compensate for another.</li>
+<li><strong>Gate, not average</strong>: a hard legality/identity lens is a blocking gate;
+  power/bracket, consistency/manabase, interaction/role, and wincon/combo each
+  emit a verdict plus observations that the aggregator composes into the
+  scorecard. A failing legality gate short-circuits before the soft lenses run.</li>
 </ul>
+<blockquote>
+<p><strong>RAD</strong> <code>#CRITICAL</code> data-integrity: lenses are pure functions of one snapshot,
+so no lens can read or silently compensate for another's state. <code>#CRITICAL</code>
+timing: a failing legality gate must short-circuit before any soft lens runs.
+<code>#VERIFY</code>: aggregation test proving lens order does not change output and that a
+failing legality gate short-circuits (see Testing Strategy and Success Criteria
+below).
+- <strong>Pure, order-independent, parallelizable later</strong>: the soft lenses are pure
+  functions of the snapshot and rules-version with no shared mutable state, so
+  their output is independent of execution order. v1 runs them sequentially
+  (they are fast database lookups well within the p95 &lt; 5s budget, so concurrency
+  buys no latency at this scale while adding execution-order test burden);
+  concurrent execution remains available as a future option without changing the
+  contract. This is the deterministic analogue of FluidDocs spawning a subagent
+  per reviewer.
+- <strong>Explanation stays off the path</strong>: the swappable generator narrates the
+  aggregated lens output; it cannot change a lens verdict (preserves ADR-003).</p>
+</blockquote>
 <h2 id="options-considered">Options Considered<a class="headerlink" href="#options-considered" title="Permanent link">&para;</a></h2>
-<h3 id="option-1-deterministic-scorecard-llm-explains-chosen">Option 1: Deterministic scorecard, LLM explains (chosen)<a class="headerlink" href="#option-1-deterministic-scorecard-llm-explains-chosen" title="Permanent link">&para;</a></h3>
+<h3 id="option-1-independent-category-owning-lenses-gate-chosen">Option 1: Independent category-owning lenses + gate (chosen)<a class="headerlink" href="#option-1-independent-category-owning-lenses-gate-chosen" title="Permanent link">&para;</a></h3>
 <p><strong>Pros</strong>:</p>
 <ul>
-<li>Legality and bracket are guaranteed, reproducible, and cheap.</li>
-<li>Little ML for v1; most work is ingestion and deterministic math.</li>
-<li>LLM cost is bounded and off the correctness path.</li>
+<li>Findings are attributable; one lens cannot mask another.</li>
+<li>Pure functions parallelize and unit-test in isolation (one golden deck per lens).</li>
+<li>New failure modes become a new lens or a lens check, not a rewrite.</li>
 </ul>
 <p><strong>Cons</strong>:</p>
 <ul>
-<li>Scoring heuristics need hand-tuning and periodic rules refresh.</li>
+<li>An aggregation contract and a shared snapshot model to define and maintain.</li>
 </ul>
-<h3 id="option-2-rag-llm-as-the-scoringcritique-core">Option 2: RAG + LLM as the scoring/critique core<a class="headerlink" href="#option-2-rag-llm-as-the-scoringcritique-core" title="Permanent link">&para;</a></h3>
+<h3 id="option-2-single-monolithic-scorer">Option 2: Single monolithic scorer<a class="headerlink" href="#option-2-single-monolithic-scorer" title="Permanent link">&para;</a></h3>
 <p><strong>Pros</strong>:</p>
 <ul>
-<li>Flexible natural-language reasoning; less explicit rule code.</li>
+<li>Fewer moving parts initially.</li>
 </ul>
 <p><strong>Cons</strong>:</p>
 <ul>
-<li>Hallucinated or illegal suggestions; non-reproducible; per-review LLM cost on
-  the hot path; ignores that the signals are already computed.</li>
+<li>Failures are hard to attribute and one category masks another; the scorer grows
+  into a tangle that resists testing and parallelism.</li>
 </ul>
-<h3 id="option-3-train-or-fine-tune-a-model-now">Option 3: Train or fine-tune a model now<a class="headerlink" href="#option-3-train-or-fine-tune-a-model-now" title="Permanent link">&para;</a></h3>
+<h3 id="option-3-llm-orchestrated-multi-agent-critique">Option 3: LLM-orchestrated multi-agent critique<a class="headerlink" href="#option-3-llm-orchestrated-multi-agent-critique" title="Permanent link">&para;</a></h3>
 <p><strong>Pros</strong>:</p>
 <ul>
-<li>Could internalize synergy and power judgment.</li>
+<li>Flexible natural-language lenses with little explicit code.</li>
 </ul>
 <p><strong>Cons</strong>:</p>
 <ul>
-<li>No labeled corpus yet; premature and expensive. The review logs accumulate
-  that corpus for a possible future phase.</li>
+<li>Non-reproducible and hallucination-prone on the correctness path; violates
+  ADR-003; per-review cost on the hot path.</li>
 </ul>
 <h2 id="consequences">Consequences<a class="headerlink" href="#consequences" title="Permanent link">&para;</a></h2>
 <h3 id="positive">Positive<a class="headerlink" href="#positive" title="Permanent link">&para;</a></h3>
 <ul>
-<li>The "LLM proposes, deterministic code disposes" seam holds: suggestions are
-  re-validated before display.</li>
-<li>Review p95 is fast (DB lookups + math, not an LLM call).</li>
-<li>Review logs capture inputs, scores, and accept/reject as a future training set.</li>
+<li>Each lens has a narrow, testable contract and a clear owner of its rules.</li>
+<li>The legality gate fails fast and cheaply before soft scoring runs.</li>
+<li>Parallel pure lenses keep review p95 within target.</li>
 </ul>
 <h3 id="trade-offs">Trade-offs<a class="headerlink" href="#trade-offs" title="Permanent link">&para;</a></h3>
 <ul>
-<li>Heuristic scores are tuning guides, not playtesting; surface them as such.</li>
-<li>The bracket system is beta; gate rules and the Game Changers list live in
-  refreshable, effective-dated config (see <a href="../adr-002-data-model/">ADR-002</a>).</li>
+<li>A shared snapshot and aggregation schema couple the lenses: mitigated by the
+  small typed <code>DeckSnapshot</code> model defined below (see Implementation) and a fixed
+  lens-result contract (verdict + observations + rules-version + spine-version).</li>
 </ul>
 <h3 id="technical-debt">Technical Debt<a class="headerlink" href="#technical-debt" title="Permanent link">&para;</a></h3>
 <ul>
-<li>Functional tagging reliability is the weak point; EDHREC/Scryfall tags cover
-  most cards but need hand-correction at the edges.</li>
+<li>Lens weighting and how soft-lens verdicts roll into the headline score need
+  tuning; surface them as guides, not verdicts (consistent with ADR-003).</li>
 </ul>
 <h2 id="implementation">Implementation<a class="headerlink" href="#implementation" title="Permanent link">&para;</a></h2>
+<h3 id="deck-snapshot-contract-shared-with-adr-005-and-adr-006">Deck Snapshot Contract (shared with ADR-005 and ADR-006)<a class="headerlink" href="#deck-snapshot-contract-shared-with-adr-005-and-adr-006" title="Permanent link">&para;</a></h3>
+<p>The "deck snapshot" is a first-class, app-owned, persisted artifact, not a
+transient in-memory object. Defining it once here closes a gap the panel review
+flagged: ADR-005 and ADR-006 both depend on the snapshot being durable and fully
+versioned, so its contents and ownership are fixed at this layer.</p>
+<ul>
+<li><strong>Ownership</strong>: app-owned (Application layer per ADR-002), written by the app
+  service alongside <code>DeckReview</code>. It is never a data-owned (Corpus/Reference)
+  row, so it does not touch the single-writer rule in ADR-001.</li>
+<li><strong>Contents</strong>: resolved cards by <code>oracle_id</code>, commander(s), computed
+  <code>color_identity</code>, and the full version vector needed to reproduce a review:
+  <code>rules_version</code>, <code>spine_version</code> and <code>archetype</code> (ADR-005), and
+  <code>classifier_version</code> (ADR-005). Any user override (e.g. a forced archetype) is
+  captured here as a recorded input.</li>
+<li><strong>Reproducibility invariant</strong>: a review is a pure function of the <code>DeckSnapshot</code>
+  alone, since the snapshot carries the full version vector above (<code>rules_version</code>,
+  <code>spine_version</code>, <code>archetype</code>, <code>classifier_version</code>). Identical snapshots yield
+  identical lens results regardless of execution order.</li>
+<li><strong>Lens-result contract</strong>: each lens returns <code>{lens, verdict, observations,
+  rules_version, spine_version}</code> so every finding is attributable to its category
+  and its versioned inputs. The <code>archetype</code> and <code>classifier_version</code> needed for
+  full reproducibility live on the <code>DeckSnapshot</code>, not on each lens result, so
+  they are not repeated per lens.</li>
+</ul>
+<blockquote>
+<p><strong>RAD</strong> <code>#CRITICAL</code> data-integrity/concurrency: a review is a pure function of the
+<code>DeckSnapshot</code>; identical snapshots yield identical lens results regardless of
+execution order or parallelism. <code>#VERIFY</code>: property test that re-running scoring on
+the same persisted snapshot reproduces identical lens verdicts under shuffled lens
+order (see Success Criteria below).</p>
+</blockquote>
 <h3 id="components-affected">Components Affected<a class="headerlink" href="#components-affected" title="Permanent link">&para;</a></h3>
 <ol>
-<li><strong>scorecard</strong>: deterministic scoring modules (power, bracket, role, manabase).</li>
-<li><strong>suggestions</strong>: role-gap and bracket-driven ranker with re-validation and
-   ownership/price annotation.</li>
-<li><strong>generator</strong>: swappable LLM explanation backend (no scoring authority).</li>
+<li><strong>scorecard</strong>: refactored into a <code>lenses/</code> package, one module per category,
+   each consuming a typed deck snapshot and returning a lens result.</li>
+<li><strong>aggregator</strong>: composes lens results, enforces the legality gate, builds the
+   scorecard.</li>
+<li><strong>suggestions</strong>: attributes each add/cut to the lens whose gap it closes.</li>
+<li><strong>generator</strong>: explains the aggregated result; no lens-verdict authority.</li>
 </ol>
 <h3 id="testing-strategy">Testing Strategy<a class="headerlink" href="#testing-strategy" title="Permanent link">&para;</a></h3>
 <ul>
-<li>Unit + property-based tests on the legality gate and scoring (golden decks);
-  mock the generator and assert it cannot alter a score or legality verdict.</li>
+<li>Unit and property tests per lens on golden decks; an aggregation test proving a
+  failing legality gate short-circuits and that lens order does not change output.</li>
 </ul>
 <h2 id="validation">Validation<a class="headerlink" href="#validation" title="Permanent link">&para;</a></h2>
 <h3 id="success-criteria">Success Criteria<a class="headerlink" href="#success-criteria" title="Permanent link">&para;</a></h3>
 <ul class="task-list">
-<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Identical inputs and rules-version yield identical scorecards.</li>
-<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Every suggested add passes legality re-validation.</li>
-<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Disabling the LLM still produces a complete scorecard and suggestions.</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Each finding names the lens (category) that produced it.</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Soft lenses are pure: identical snapshot and rules-version yield identical
+      lens results regardless of execution order or parallelism.</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> A failing legality gate short-circuits before soft lenses run.</li>
 </ul>
 <h2 id="related">Related<a class="headerlink" href="#related" title="Permanent link">&para;</a></h2>
 <ul>
-<li><a href="../adr-001-initial-architecture/">ADR-001: Architecture</a></li>
-<li><a href="../adr-002-data-model/">ADR-002: Data Model</a></li>
-<li><a href="../adr-004-multi-lens-critique-reviewers/">ADR-004: Multi-Lens Critique Reviewers</a></li>
+<li><a href="../adr-003-engine-approach/">ADR-003: Engine Approach</a></li>
 <li><a href="../adr-005-archetype-critique-spines/">ADR-005: Archetype Critique Spines</a></li>
 <li><a href="../adr-006-compounding-learnings-log/">ADR-006: Compounding Learnings Log</a></li>
+<li><a href="../../fluiddocs-deck-builder-review/">FluidDocs Deck-Builder Review</a></li>
 <li><a href="../../tech-spec/">Technical Spec</a></li>
-<li><a href="../../project-vision/">Project Vision</a></li>
 </ul>
 
 
@@ -1550,7 +1614,7 @@ model.</strong></p>
     <span class="md-icon" title="Created">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M14.47 15.08 11 13V7h1.5v5.25l3.08 1.83c-.41.28-.79.62-1.11 1m-1.39 4.84c-.36.05-.71.08-1.08.08-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8c0 .37-.03.72-.08 1.08.69.1 1.33.32 1.92.64.1-.56.16-1.13.16-1.72 0-5.5-4.5-10-10-10S2 6.5 2 12s4.47 10 10 10c.59 0 1.16-.06 1.72-.16-.32-.59-.54-1.23-.64-1.92M18 15v3h-3v2h3v3h2v-3h3v-2h-3v-3z"/></svg>
     </span>
-    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="June 3, 2026 01:08:36 UTC">June 3, 2026</span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="June 9, 2026 17:11:53 UTC">June 9, 2026</span>
   </span>
 
     

@@ -12,7 +12,7 @@
         <meta name="author" content="Byron Williams">
       
       
-        <link rel="canonical" href="https://MTG_AI.readthedocs.io/planning/adr/adr-003-engine-approach/">
+        <link rel="canonical" href="https://MTG_AI.readthedocs.io/planning/fluiddocs-deck-builder-review/">
       
       
       
@@ -20,19 +20,19 @@
         
       
       
-      <link rel="icon" href="../../../assets/images/favicon.png">
+      <link rel="icon" href="../../assets/images/favicon.png">
       <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
     
     
       
-        <title>ADR-003: Deterministic Scorecard Engine, LLM for Explanation - MTG AI</title>
+        <title>Reference: FluidDocs Deck-Builder Review and Lessons - MTG AI</title>
       
     
     
-      <link rel="stylesheet" href="../../../assets/stylesheets/main.484c7ddc.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
       
         
-        <link rel="stylesheet" href="../../../assets/stylesheets/palette.ab4e12ef.min.css">
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
       
       
 
@@ -51,9 +51,9 @@
       
     
     
-      <link rel="stylesheet" href="../../../assets/_mkdocstrings.css">
+      <link rel="stylesheet" href="../../assets/_mkdocstrings.css">
     
-    <script>__md_scope=new URL("../../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
       
   
@@ -88,7 +88,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#tldr" class="md-skip">
+        <a href="#what-fluiddocs-deck-builder-is" class="md-skip">
           Skip to content
         </a>
       
@@ -102,7 +102,7 @@
 
 <header class="md-header" data-md-component="header">
   <nav class="md-header__inner md-grid" aria-label="Header">
-    <a href="../../.." title="MTG AI" class="md-header__button md-logo" aria-label="MTG AI" data-md-component="logo">
+    <a href="../.." title="MTG AI" class="md-header__button md-logo" aria-label="MTG AI" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
@@ -122,7 +122,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              ADR-003: Deterministic Scorecard Engine, LLM for Explanation
+              Reference: FluidDocs Deck-Builder Review and Lessons
             
           </span>
         </div>
@@ -235,7 +235,7 @@
   
   
     <li class="md-tabs__item">
-      <a href="../../.." class="md-tabs__link">
+      <a href="../.." class="md-tabs__link">
         
   
   
@@ -256,7 +256,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="../../../guides/overview/" class="md-tabs__link">
+        <a href="../../guides/overview/" class="md-tabs__link">
           
   
   
@@ -278,7 +278,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="../../../api-reference/" class="md-tabs__link">
+        <a href="../../api-reference/" class="md-tabs__link">
           
   
   
@@ -300,7 +300,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="../../../development/architecture/" class="md-tabs__link">
+        <a href="../../development/architecture/" class="md-tabs__link">
           
   
   
@@ -322,7 +322,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="../../../project/roadmap/" class="md-tabs__link">
+        <a href="../../project/roadmap/" class="md-tabs__link">
           
   
   
@@ -358,7 +358,7 @@
 
 <nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
   <label class="md-nav__title" for="__drawer">
-    <a href="../../.." title="MTG AI" class="md-nav__button md-logo" aria-label="MTG AI" data-md-component="logo">
+    <a href="../.." title="MTG AI" class="md-nav__button md-logo" aria-label="MTG AI" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
@@ -388,7 +388,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../.." class="md-nav__link">
+      <a href="../.." class="md-nav__link">
         
   
   
@@ -484,7 +484,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../guides/overview/" class="md-nav__link">
+      <a href="../../guides/overview/" class="md-nav__link">
         
   
   
@@ -519,7 +519,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../guides/configuration/" class="md-nav__link">
+      <a href="../../guides/configuration/" class="md-nav__link">
         
   
   
@@ -554,7 +554,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../guides/usage/" class="md-nav__link">
+      <a href="../../guides/usage/" class="md-nav__link">
         
   
   
@@ -654,7 +654,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../api-reference/" class="md-nav__link">
+      <a href="../../api-reference/" class="md-nav__link">
         
   
   
@@ -760,7 +760,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../development/architecture/" class="md-nav__link">
+      <a href="../../development/architecture/" class="md-nav__link">
         
   
   
@@ -795,7 +795,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../development/testing/" class="md-nav__link">
+      <a href="../../development/testing/" class="md-nav__link">
         
   
   
@@ -830,7 +830,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../development/code-quality/" class="md-nav__link">
+      <a href="../../development/code-quality/" class="md-nav__link">
         
   
   
@@ -865,7 +865,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../development/contributing/" class="md-nav__link">
+      <a href="../../development/contributing/" class="md-nav__link">
         
   
   
@@ -969,7 +969,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../project/roadmap/" class="md-nav__link">
+      <a href="../../project/roadmap/" class="md-nav__link">
         
   
   
@@ -1004,7 +1004,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../project/changelog/" class="md-nav__link">
+      <a href="../../project/changelog/" class="md-nav__link">
         
   
   
@@ -1039,7 +1039,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../project/license/" class="md-nav__link">
+      <a href="../../project/license/" class="md-nav__link">
         
   
   
@@ -1099,10 +1099,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#tldr" class="md-nav__link">
+  <a href="#what-fluiddocs-deck-builder-is" class="md-nav__link">
     <span class="md-ellipsis">
       
-        TL;DR
+        What FluidDocs Deck-Builder Is
       
     </span>
   </a>
@@ -1110,22 +1110,33 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#context" class="md-nav__link">
+  <a href="#lessons-that-became-decisions" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Context
+        Lessons That Became Decisions
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Context">
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#lessons-kept-as-reference-not-decisions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Lessons Kept as Reference (Not Decisions)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Lessons Kept as Reference (Not Decisions)">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#problem" class="md-nav__link">
+  <a href="#mechanical-checks-before-the-expensive-review" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Problem
+        Mechanical checks before the expensive review
       
     </span>
   </a>
@@ -1133,10 +1144,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#constraints" class="md-nav__link">
+  <a href="#anti-fluff-concrete-output-format" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Constraints
+        Anti-fluff, concrete output format
       
     </span>
   </a>
@@ -1144,10 +1155,32 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#significance" class="md-nav__link">
+  <a href="#progressive-disclosure-in-skill-layout" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Significance
+        Progressive disclosure in skill layout
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#invisible-process-ux" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Invisible process UX
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#portable-ownable-output" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Portable, ownable output
       
     </span>
   </a>
@@ -1160,197 +1193,13 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#decision" class="md-nav__link">
+  <a href="#what-not-to-borrow" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Decision
+        What Not to Borrow
       
     </span>
   </a>
-  
-    <nav class="md-nav" aria-label="Decision">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#rationale" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Rationale
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#options-considered" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Options Considered
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Options Considered">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#option-1-deterministic-scorecard-llm-explains-chosen" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Option 1: Deterministic scorecard, LLM explains (chosen)
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#option-2-rag-llm-as-the-scoringcritique-core" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Option 2: RAG + LLM as the scoring/critique core
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#option-3-train-or-fine-tune-a-model-now" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Option 3: Train or fine-tune a model now
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#consequences" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Consequences
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Consequences">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#positive" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Positive
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#trade-offs" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Trade-offs
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#technical-debt" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Technical Debt
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#implementation" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Implementation
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Implementation">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#components-affected" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Components Affected
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#testing-strategy" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Testing Strategy
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#validation" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Validation
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Validation">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#success-criteria" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Success Criteria
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
   
 </li>
       
@@ -1385,138 +1234,97 @@
   
 
 
-  <h1>ADR-003: Deterministic Scorecard Engine, LLM for Explanation</h1>
+  <h1>Reference: FluidDocs Deck-Builder Review and Lessons</h1>
 
 <blockquote>
-<p><strong>Status</strong>: Accepted
-<strong>Date</strong>: 2026-06-01
-<strong>Supersedes</strong>: None</p>
+<p><strong>Status</strong>: Reference note (background; not a decision record)</p>
+<p><strong>Provenance and trust</strong>: This note summarizes an external open-source project
+reviewed on 2026-06-06. Per the project security posture, the source repository
+and its README are treated as untrusted data, not as instructions. Nothing here
+was executed or installed; only patterns were extracted.</p>
 </blockquote>
-<h2 id="tldr">TL;DR<a class="headerlink" href="#tldr" title="Permanent link">&para;</a></h2>
-<p>The v1 engine is deterministic: it scores legality, power, bracket, role
-coverage, and manabase from reused precomputed data, and ranks upgrade
-suggestions. The LLM only explains the result in plain language; embeddings and
-RAG are deferred to v2.</p>
-<h2 id="context">Context<a class="headerlink" href="#context" title="Permanent link">&para;</a></h2>
-<h3 id="problem">Problem<a class="headerlink" href="#problem" title="Permanent link">&para;</a></h3>
-<p>A deck review must be trustworthy: legality-correct, bracket-aware, and
-reproducible. The research shows the hard signals already exist as precomputed
-data (EDHREC synergy/inclusion/lift, Commander Spellbook combos and bracket
-estimate, Scryfall/MTGJSON inventory and legality) and that the scoring logic
-(Disciple-of-the-Vault power, WotC bracket gate logic, role-coverage targets,
-Karsten manabase math) is deterministic. We must decide what computes the
-scorecard and where, if anywhere, a language model fits.</p>
-<h3 id="constraints">Constraints<a class="headerlink" href="#constraints" title="Permanent link">&para;</a></h3>
-<ul>
-<li><strong>Technical</strong>: legality and bracket placement cannot tolerate hallucination;
-  reviews must be reproducible; single small box, few users, cheap to run.</li>
-<li><strong>Business</strong>: single maintainer; ship the Commander review loop first.</li>
-</ul>
-<h3 id="significance">Significance<a class="headerlink" href="#significance" title="Permanent link">&para;</a></h3>
-<p>This choice sets the trust model and the v1 build size; reversing it would
-re-found the whole pipeline.</p>
-<h2 id="decision">Decision<a class="headerlink" href="#decision" title="Permanent link">&para;</a></h2>
-<p><strong>The v1 engine is a deterministic scorecard over reused precomputed data, and
-the LLM is explanation-only behind a swappable generator interface, because the
-authoritative signals already exist and correctness must never depend on a
-model.</strong></p>
-<h3 id="rationale">Rationale<a class="headerlink" href="#rationale" title="Permanent link">&para;</a></h3>
-<ul>
-<li><strong>Deterministic truth</strong>: a legality/identity gate, functional power (1-10),
-  bracket gate logic over the versioned Game Changers list, role coverage vs
-  archetype targets, and a Karsten manabase check produce identical output for
-  identical inputs and rules-version.</li>
-<li><strong>Suggestions are deterministic too</strong>: cuts/adds come from underfilled roles
-  and bracket mismatches, ranked by commander synergy and lift, each re-validated
-  for legality, then annotated with ownership and price for value-per-dollar
-  sorting.</li>
-<li><strong>LLM explains, never decides</strong>: the generator turns the scorecard into prose;
-  it cannot change a score, legality, or bracket. The interface stays swappable
-  so a later model (or none) is a drop-in.</li>
-<li><strong>Defer embeddings</strong>: card2vec-style retrieval finds relationships the
-  per-commander view misses, but the existing stats cover v1; embeddings are a
-  v2 enhancement, not a dependency.</li>
-</ul>
-<h2 id="options-considered">Options Considered<a class="headerlink" href="#options-considered" title="Permanent link">&para;</a></h2>
-<h3 id="option-1-deterministic-scorecard-llm-explains-chosen">Option 1: Deterministic scorecard, LLM explains (chosen)<a class="headerlink" href="#option-1-deterministic-scorecard-llm-explains-chosen" title="Permanent link">&para;</a></h3>
-<p><strong>Pros</strong>:</p>
-<ul>
-<li>Legality and bracket are guaranteed, reproducible, and cheap.</li>
-<li>Little ML for v1; most work is ingestion and deterministic math.</li>
-<li>LLM cost is bounded and off the correctness path.</li>
-</ul>
-<p><strong>Cons</strong>:</p>
-<ul>
-<li>Scoring heuristics need hand-tuning and periodic rules refresh.</li>
-</ul>
-<h3 id="option-2-rag-llm-as-the-scoringcritique-core">Option 2: RAG + LLM as the scoring/critique core<a class="headerlink" href="#option-2-rag-llm-as-the-scoringcritique-core" title="Permanent link">&para;</a></h3>
-<p><strong>Pros</strong>:</p>
-<ul>
-<li>Flexible natural-language reasoning; less explicit rule code.</li>
-</ul>
-<p><strong>Cons</strong>:</p>
-<ul>
-<li>Hallucinated or illegal suggestions; non-reproducible; per-review LLM cost on
-  the hot path; ignores that the signals are already computed.</li>
-</ul>
-<h3 id="option-3-train-or-fine-tune-a-model-now">Option 3: Train or fine-tune a model now<a class="headerlink" href="#option-3-train-or-fine-tune-a-model-now" title="Permanent link">&para;</a></h3>
-<p><strong>Pros</strong>:</p>
-<ul>
-<li>Could internalize synergy and power judgment.</li>
-</ul>
-<p><strong>Cons</strong>:</p>
-<ul>
-<li>No labeled corpus yet; premature and expensive. The review logs accumulate
-  that corpus for a possible future phase.</li>
-</ul>
-<h2 id="consequences">Consequences<a class="headerlink" href="#consequences" title="Permanent link">&para;</a></h2>
-<h3 id="positive">Positive<a class="headerlink" href="#positive" title="Permanent link">&para;</a></h3>
-<ul>
-<li>The "LLM proposes, deterministic code disposes" seam holds: suggestions are
-  re-validated before display.</li>
-<li>Review p95 is fast (DB lookups + math, not an LLM call).</li>
-<li>Review logs capture inputs, scores, and accept/reject as a future training set.</li>
-</ul>
-<h3 id="trade-offs">Trade-offs<a class="headerlink" href="#trade-offs" title="Permanent link">&para;</a></h3>
-<ul>
-<li>Heuristic scores are tuning guides, not playtesting; surface them as such.</li>
-<li>The bracket system is beta; gate rules and the Game Changers list live in
-  refreshable, effective-dated config (see <a href="../adr-002-data-model/">ADR-002</a>).</li>
-</ul>
-<h3 id="technical-debt">Technical Debt<a class="headerlink" href="#technical-debt" title="Permanent link">&para;</a></h3>
-<ul>
-<li>Functional tagging reliability is the weak point; EDHREC/Scryfall tags cover
-  most cards but need hand-correction at the edges.</li>
-</ul>
-<h2 id="implementation">Implementation<a class="headerlink" href="#implementation" title="Permanent link">&para;</a></h2>
-<h3 id="components-affected">Components Affected<a class="headerlink" href="#components-affected" title="Permanent link">&para;</a></h3>
-<ol>
-<li><strong>scorecard</strong>: deterministic scoring modules (power, bracket, role, manabase).</li>
-<li><strong>suggestions</strong>: role-gap and bracket-driven ranker with re-validation and
-   ownership/price annotation.</li>
-<li><strong>generator</strong>: swappable LLM explanation backend (no scoring authority).</li>
-</ol>
-<h3 id="testing-strategy">Testing Strategy<a class="headerlink" href="#testing-strategy" title="Permanent link">&para;</a></h3>
-<ul>
-<li>Unit + property-based tests on the legality gate and scoring (golden decks);
-  mock the generator and assert it cannot alter a score or legality verdict.</li>
-</ul>
-<h2 id="validation">Validation<a class="headerlink" href="#validation" title="Permanent link">&para;</a></h2>
-<h3 id="success-criteria">Success Criteria<a class="headerlink" href="#success-criteria" title="Permanent link">&para;</a></h3>
-<ul class="task-list">
-<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Identical inputs and rules-version yield identical scorecards.</li>
-<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Every suggested add passes legality re-validation.</li>
-<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Disabling the LLM still produces a complete scorecard and suggestions.</li>
-</ul>
+<h2 id="what-fluiddocs-deck-builder-is">What FluidDocs Deck-Builder Is<a class="headerlink" href="#what-fluiddocs-deck-builder-is" title="Permanent link">&para;</a></h2>
+<p><a href="https://github.com/FluidForm-ai/fluiddocs-deck-builder">FluidForm-ai/fluiddocs-deck-builder</a>
+(MIT) is a Claude Code skill suite that generates self-contained HTML
+<em>presentation</em> decks (pitch, sales, launch, keynote, all-hands) and imports
+PDF/PPTX into editable HTML. Despite the shared "deck builder" name, the domain
+is unrelated to MTG AI: it produces slide decks, not Magic decks, and has no RAG,
+data backend, or rules engine. The value to us is architectural, not code.</p>
+<h2 id="lessons-that-became-decisions">Lessons That Became Decisions<a class="headerlink" href="#lessons-that-became-decisions" title="Permanent link">&para;</a></h2>
+<p>These were genuine architectural decisions and are recorded as ADRs:</p>
+<table>
+<thead>
+<tr>
+<th>Lesson (FluidDocs)</th>
+<th>MTG AI adaptation</th>
+<th>ADR</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Three independent reviewers (Brand, Copy, Layout), each owning one failure category, all must pass; spawned as parallel subagents when available</td>
+<td>Decompose the deterministic review into independent, category-owning lenses over one deck snapshot, aggregated by a gate, run sequentially in v1 (parallel execution deferred)</td>
+<td><a href="../adr/adr-004-multi-lens-critique-reviewers/">ADR-004</a></td>
+</tr>
+<tr>
+<td>Type-correct deck spines: each deck type declares its own structure, not one generic template ("a pitch is not a sales deck")</td>
+<td>Archetype-specific critique spines (generic-midrange in v1; turbo/combo, stax/control, aggro deferred) as versioned, effective-dated config the lenses evaluate against</td>
+<td><a href="../adr/adr-005-archetype-critique-spines/">ADR-005</a></td>
+</tr>
+<tr>
+<td>Learn phase: every post-delivery issue is logged and becomes a new reviewer checklist item, so the process compounds</td>
+<td>Append-only learnings log; each escaped misjudgment becomes a deterministic check or a golden regression fixture</td>
+<td><a href="../adr/adr-006-compounding-learnings-log/">ADR-006</a></td>
+</tr>
+</tbody>
+</table>
+<h2 id="lessons-kept-as-reference-not-decisions">Lessons Kept as Reference (Not Decisions)<a class="headerlink" href="#lessons-kept-as-reference-not-decisions" title="Permanent link">&para;</a></h2>
+<p>These are practices and principles worth applying as the build progresses; they
+did not warrant their own ADR.</p>
+<h3 id="mechanical-checks-before-the-expensive-review">Mechanical checks before the expensive review<a class="headerlink" href="#mechanical-checks-before-the-expensive-review" title="Permanent link">&para;</a></h3>
+<p>FluidDocs self-lints (syntax, file size, forbidden-classname grep, font-scale
+check) before the LLM reviewers run. MTG AI already embodies this in
+<a href="../adr/adr-003-engine-approach/">ADR-003</a>: the legality/identity gate and
+deterministic math run before any generation. The reusable principle: keep cheap,
+deterministic checks strictly ahead of any model call, and make the gate emit
+clear, specific errors. The legality gate in ADR-004 is the explicit home for it.</p>
+<h3 id="anti-fluff-concrete-output-format">Anti-fluff, concrete output format<a class="headerlink" href="#anti-fluff-concrete-output-format" title="Permanent link">&para;</a></h3>
+<p>The <code>deck-critique-lite</code> skill returns 5 to 7 observations, each tied to a
+specific slide with a concrete edit, and explicitly bans scoring theater, padding,
+and validation filler. Adopt the same discipline for review output: each finding
+cites a specific card or slot and proposes a concrete add/cut/swap, no filler.
+This is an output-contract style choice for the generator and suggestion
+formatting, not an architecture decision.</p>
+<h3 id="progressive-disclosure-in-skill-layout">Progressive disclosure in skill layout<a class="headerlink" href="#progressive-disclosure-in-skill-layout" title="Permanent link">&para;</a></h3>
+<p>FluidDocs keeps a thin <code>SKILL.md</code> entry point that points to <code>references/</code> and
+<code>reviewers/*.md</code> loaded on demand; type packs inherit a shared core pipeline. If
+MTG AI ever ships its review loop as a Claude Code skill, mirror this: a lean core
+skill plus on-demand reference packs (archetype spines, ban lists, meta data) to
+keep context small.</p>
+<h3 id="invisible-process-ux">Invisible process UX<a class="headerlink" href="#invisible-process-ux" title="Permanent link">&para;</a></h3>
+<p>FluidDocs keeps phases, gates, and reviewer passes internal; the user sees only
+questions and the finished artifact. Apply to MTG AI's CLI/UX: surface the
+scorecard and concrete suggestions, not the internal lens/gate/aggregation
+machinery.</p>
+<h3 id="portable-ownable-output">Portable, ownable output<a class="headerlink" href="#portable-ownable-output" title="Permanent link">&para;</a></h3>
+<p>FluidDocs ships a single self-contained artifact with no server or account
+required. This aligns with MTG AI's self-hosted posture; keep review output
+exportable and ownable (for example a self-contained report) rather than locked to
+a running service.</p>
+<h2 id="what-not-to-borrow">What Not to Borrow<a class="headerlink" href="#what-not-to-borrow" title="Permanent link">&para;</a></h2>
+<p>FluidDocs is roughly 85% HTML and 13% Python with little visible test or type
+rigor and a frontend-generation purpose. MTG AI's engineering bar (BasedPyright
+strict, 80% coverage, security scanning) is higher; borrow the pipeline and
+critique patterns above, not its tooling or testing posture. Its Claude Code
+plugin/marketplace distribution model is only relevant if MTG AI later wants to be
+installable that way, which is out of scope for the self-hosted v1.</p>
 <h2 id="related">Related<a class="headerlink" href="#related" title="Permanent link">&para;</a></h2>
 <ul>
-<li><a href="../adr-001-initial-architecture/">ADR-001: Architecture</a></li>
-<li><a href="../adr-002-data-model/">ADR-002: Data Model</a></li>
-<li><a href="../adr-004-multi-lens-critique-reviewers/">ADR-004: Multi-Lens Critique Reviewers</a></li>
-<li><a href="../adr-005-archetype-critique-spines/">ADR-005: Archetype Critique Spines</a></li>
-<li><a href="../adr-006-compounding-learnings-log/">ADR-006: Compounding Learnings Log</a></li>
-<li><a href="../../tech-spec/">Technical Spec</a></li>
-<li><a href="../../project-vision/">Project Vision</a></li>
+<li><a href="../adr/adr-004-multi-lens-critique-reviewers/">ADR-004: Multi-Lens Critique Reviewers</a></li>
+<li><a href="../adr/adr-005-archetype-critique-spines/">ADR-005: Archetype Critique Spines</a></li>
+<li><a href="../adr/adr-006-compounding-learnings-log/">ADR-006: Compounding Learnings Log</a></li>
+<li><a href="../adr/adr-003-engine-approach/">ADR-003: Engine Approach</a></li>
+<li><a href="../tech-spec/">Technical Spec</a></li>
 </ul>
 
 
@@ -1550,7 +1358,7 @@ model.</strong></p>
     <span class="md-icon" title="Created">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M14.47 15.08 11 13V7h1.5v5.25l3.08 1.83c-.41.28-.79.62-1.11 1m-1.39 4.84c-.36.05-.71.08-1.08.08-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8c0 .37-.03.72-.08 1.08.69.1 1.33.32 1.92.64.1-.56.16-1.13.16-1.72 0-5.5-4.5-10-10-10S2 6.5 2 12s4.47 10 10 10c.59 0 1.16-.06 1.72-.16-.32-.59-.54-1.23-.64-1.92M18 15v3h-3v2h3v3h2v-3h3v-2h-3v-3z"/></svg>
     </span>
-    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="June 3, 2026 01:08:36 UTC">June 3, 2026</span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="June 9, 2026 17:11:53 UTC">June 9, 2026</span>
   </span>
 
     
@@ -1627,10 +1435,10 @@ model.</strong></p>
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "../../..", "features": ["navigation.instant", "navigation.tracking", "navigation.tabs", "navigation.sections", "navigation.expand", "navigation.indexes", "navigation.top", "search.suggest", "search.highlight", "content.code.copy", "content.code.annotate"], "search": "../../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.instant", "navigation.tracking", "navigation.tabs", "navigation.sections", "navigation.expand", "navigation.indexes", "navigation.top", "search.suggest", "search.highlight", "content.code.copy", "content.code.annotate"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
     
     
-      <script src="../../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
       
     
   </body>

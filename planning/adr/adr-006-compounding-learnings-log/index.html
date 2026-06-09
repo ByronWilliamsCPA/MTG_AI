@@ -12,7 +12,7 @@
         <meta name="author" content="Byron Williams">
       
       
-        <link rel="canonical" href="https://MTG_AI.readthedocs.io/planning/adr/adr-003-engine-approach/">
+        <link rel="canonical" href="https://MTG_AI.readthedocs.io/planning/adr/adr-006-compounding-learnings-log/">
       
       
       
@@ -25,7 +25,7 @@
     
     
       
-        <title>ADR-003: Deterministic Scorecard Engine, LLM for Explanation - MTG AI</title>
+        <title>ADR-006: Compounding Learnings Log for Critique Quality - MTG AI</title>
       
     
     
@@ -122,7 +122,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              ADR-003: Deterministic Scorecard Engine, LLM for Explanation
+              ADR-006: Compounding Learnings Log for Critique Quality
             
           </span>
         </div>
@@ -1200,10 +1200,10 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#option-1-deterministic-scorecard-llm-explains-chosen" class="md-nav__link">
+  <a href="#option-1-append-only-learnings-log-triaged-into-checksfixtures-chosen" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Option 1: Deterministic scorecard, LLM explains (chosen)
+        Option 1: Append-only learnings log triaged into checks/fixtures (chosen)
       
     </span>
   </a>
@@ -1211,10 +1211,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#option-2-rag-llm-as-the-scoringcritique-core" class="md-nav__link">
+  <a href="#option-2-ad-hoc-fixes-without-a-log" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Option 2: RAG + LLM as the scoring/critique core
+        Option 2: Ad hoc fixes without a log
       
     </span>
   </a>
@@ -1222,10 +1222,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#option-3-train-or-fine-tune-a-model-now" class="md-nav__link">
+  <a href="#option-3-track-issues-only-in-an-external-tracker" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Option 3: Train or fine-tune a model now
+        Option 3: Track issues only in an external tracker
       
     </span>
   </a>
@@ -1282,22 +1282,27 @@
   
 </li>
         
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#implementation" class="md-nav__link">
+          <li class="md-nav__item">
+  <a href="#privacy-and-retention" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Implementation
+        Privacy and retention
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Implementation">
-      <ul class="md-nav__list">
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#v1-scope-what-ships-first" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        v1 Scope (what ships first)
+      
+    </span>
+  </a>
+  
+</li>
         
           <li class="md-nav__item">
   <a href="#components-affected" class="md-nav__link">
@@ -1385,138 +1390,195 @@
   
 
 
-  <h1>ADR-003: Deterministic Scorecard Engine, LLM for Explanation</h1>
+  <h1>ADR-006: Compounding Learnings Log for Critique Quality</h1>
 
 <blockquote>
 <p><strong>Status</strong>: Accepted
-<strong>Date</strong>: 2026-06-01
-<strong>Supersedes</strong>: None</p>
+<strong>Date</strong>: 2026-06-08 (proposed 2026-06-06)
+<strong>Supersedes</strong>: None
+<strong>Decision note</strong>: Accepted after the 2026-06-08 multi-lens panel review, with
+two corrections the panel required. (1) The learnings log is <strong>app-owned</strong>, not
+a data-owned Corpus artifact: the flagging event arrives through the
+app-service feedback route, and the app role has <code>SELECT</code>-only on data-owned
+tables, so a Corpus placement would violate the single-writer rule in ADR-001.
+(2) Capturing user decklists needs its own privacy posture (see "Privacy and
+retention"); ADR-002 provenance covers external licensed data, not private user
+decks. v1 ships only reproducible capture; the triage workflow and the
+CI-regression machinery are deferred to Phase 4 with the eval harness.</p>
 </blockquote>
 <h2 id="tldr">TL;DR<a class="headerlink" href="#tldr" title="Permanent link">&para;</a></h2>
-<p>The v1 engine is deterministic: it scores legality, power, bracket, role
-coverage, and manabase from reused precomputed data, and ranks upgrade
-suggestions. The LLM only explains the result in plain language; embeddings and
-RAG are deferred to v2.</p>
+<p>Every escaped misjudgment (a wrong, illegal, or off-archetype review the user
+flags) is recorded in an <strong>app-owned</strong>, append-only learnings log with the
+reproducing <code>DeckSnapshot</code> (ADR-004) and its version vector, then triaged into
+either a new deterministic lens check or a golden regression fixture, so review
+quality compounds instead of regressing. v1 captures entries; triage and the
+CI-regression gate land in Phase 4.</p>
 <h2 id="context">Context<a class="headerlink" href="#context" title="Permanent link">&para;</a></h2>
 <h3 id="problem">Problem<a class="headerlink" href="#problem" title="Permanent link">&para;</a></h3>
-<p>A deck review must be trustworthy: legality-correct, bracket-aware, and
-reproducible. The research shows the hard signals already exist as precomputed
-data (EDHREC synergy/inclusion/lift, Commander Spellbook combos and bracket
-estimate, Scryfall/MTGJSON inventory and legality) and that the scoring logic
-(Disciple-of-the-Vault power, WotC bracket gate logic, role-coverage targets,
-Karsten manabase math) is deterministic. We must decide what computes the
-scorecard and where, if anywhere, a language model fits.</p>
+<p><a href="../adr-003-engine-approach/">ADR-003</a> noted that review logs accumulate a
+corpus and that heuristic scores need tuning, but it left no mechanism that turns
+a bad review into a durable fix. Without one, the same misjudgment recurs, fixes
+are ad hoc, and there is no growing regression set guarding the deterministic
+lenses (<a href="../adr-004-multi-lens-critique-reviewers/">ADR-004</a>) and spines
+(<a href="../adr-005-archetype-critique-spines/">ADR-005</a>).</p>
 <h3 id="constraints">Constraints<a class="headerlink" href="#constraints" title="Permanent link">&para;</a></h3>
 <ul>
-<li><strong>Technical</strong>: legality and bracket placement cannot tolerate hallucination;
-  reviews must be reproducible; single small box, few users, cheap to run.</li>
-<li><strong>Business</strong>: single maintainer; ship the Commander review loop first.</li>
+<li><strong>Technical</strong>: a captured case must reproduce exactly, which requires the deck
+  snapshot plus the rules-version and spine version used; the log must feed the
+  test suite, not just sit as prose.</li>
+<li><strong>Business</strong>: single maintainer; the loop must be low-ceremony or it will not be
+  used.</li>
 </ul>
 <h3 id="significance">Significance<a class="headerlink" href="#significance" title="Permanent link">&para;</a></h3>
-<p>This choice sets the trust model and the v1 build size; reversing it would
-re-found the whole pipeline.</p>
+<p>This is the quality flywheel: it decides whether the heuristics improve over time
+or drift; retrofitting reproducible capture later loses the early corpus.</p>
 <h2 id="decision">Decision<a class="headerlink" href="#decision" title="Permanent link">&para;</a></h2>
-<p><strong>The v1 engine is a deterministic scorecard over reused precomputed data, and
-the LLM is explanation-only behind a swappable generator interface, because the
-authoritative signals already exist and correctness must never depend on a
-model.</strong></p>
+<p><strong>We adopt an append-only learnings log where each escaped misjudgment is captured
+with its reproducing snapshot and triaged into a deterministic check or a golden
+fixture, because a review system without a compounding feedback loop silently
+regresses.</strong> This adapts the FluidDocs deck-builder's Learn phase, where every
+post-delivery issue is logged and becomes a new reviewer checklist item so the
+process compounds across decks.</p>
 <h3 id="rationale">Rationale<a class="headerlink" href="#rationale" title="Permanent link">&para;</a></h3>
 <ul>
-<li><strong>Deterministic truth</strong>: a legality/identity gate, functional power (1-10),
-  bracket gate logic over the versioned Game Changers list, role coverage vs
-  archetype targets, and a Karsten manabase check produce identical output for
-  identical inputs and rules-version.</li>
-<li><strong>Suggestions are deterministic too</strong>: cuts/adds come from underfilled roles
-  and bracket mismatches, ranked by commander synergy and lift, each re-validated
-  for legality, then annotated with ownership and price for value-per-dollar
-  sorting.</li>
-<li><strong>LLM explains, never decides</strong>: the generator turns the scorecard into prose;
-  it cannot change a score, legality, or bracket. The interface stays swappable
-  so a later model (or none) is a drop-in.</li>
-<li><strong>Defer embeddings</strong>: card2vec-style retrieval finds relationships the
-  per-commander view misses, but the existing stats cover v1; embeddings are a
-  v2 enhancement, not a dependency.</li>
+<li><strong>Reproducible capture</strong>: a flagged review writes a log entry referencing the
+  persisted <code>DeckSnapshot</code> (ADR-004) and its full version vector (<code>rules_version</code>,
+  <code>spine_version</code>, <code>archetype</code>, <code>classifier_version</code>), the lens verdicts, and the
+  human correction, so the case re-runs deterministically. The snapshot is the
+  durable app-owned entity ADR-004 defines, which is why that contract had to be
+  pinned down rather than left transient.</li>
+<li><strong>Triage into one of two durable forms</strong>: either (a) a new or tightened lens
+  check (a missing rule the deterministic engine should have caught) or (b) a
+  golden regression fixture asserting the corrected verdict; prose alone is not an
+  accepted resolution.</li>
+<li><strong>Compounding, not one-off</strong>: the fixture set and lens checks only grow, so a
+  fixed misjudgment cannot silently return; this is the deterministic counterpart
+  to FluidDocs adding a reviewer item per escape.</li>
+<li><strong>Feeds the existing seam</strong>: entries live as an <strong>app-owned</strong>, Application-layer
+  append-only artifact (see <a href="../adr-002-data-model/">ADR-002</a>), written by
+  the app service that owns the feedback route, never as a data-owned Corpus row
+  (which the app role cannot write under ADR-001). They double as the labeled
+  corpus ADR-003 anticipated for a possible future model phase; promotion into a
+  data-owned training corpus, if it ever happens, is a separate data-service
+  ingestion step governed by the privacy posture below.</li>
 </ul>
 <h2 id="options-considered">Options Considered<a class="headerlink" href="#options-considered" title="Permanent link">&para;</a></h2>
-<h3 id="option-1-deterministic-scorecard-llm-explains-chosen">Option 1: Deterministic scorecard, LLM explains (chosen)<a class="headerlink" href="#option-1-deterministic-scorecard-llm-explains-chosen" title="Permanent link">&para;</a></h3>
+<h3 id="option-1-append-only-learnings-log-triaged-into-checksfixtures-chosen">Option 1: Append-only learnings log triaged into checks/fixtures (chosen)<a class="headerlink" href="#option-1-append-only-learnings-log-triaged-into-checksfixtures-chosen" title="Permanent link">&para;</a></h3>
 <p><strong>Pros</strong>:</p>
 <ul>
-<li>Legality and bracket are guaranteed, reproducible, and cheap.</li>
-<li>Little ML for v1; most work is ingestion and deterministic math.</li>
-<li>LLM cost is bounded and off the correctness path.</li>
+<li>Each escape becomes a permanent guard; quality compounds.</li>
+<li>Reproducible cases feed CI directly as golden fixtures.</li>
+<li>Builds the labeled corpus for a future training phase at no extra cost.</li>
 </ul>
 <p><strong>Cons</strong>:</p>
 <ul>
-<li>Scoring heuristics need hand-tuning and periodic rules refresh.</li>
+<li>Discipline cost: every accepted escape must produce a check or a fixture.</li>
 </ul>
-<h3 id="option-2-rag-llm-as-the-scoringcritique-core">Option 2: RAG + LLM as the scoring/critique core<a class="headerlink" href="#option-2-rag-llm-as-the-scoringcritique-core" title="Permanent link">&para;</a></h3>
+<h3 id="option-2-ad-hoc-fixes-without-a-log">Option 2: Ad hoc fixes without a log<a class="headerlink" href="#option-2-ad-hoc-fixes-without-a-log" title="Permanent link">&para;</a></h3>
 <p><strong>Pros</strong>:</p>
 <ul>
-<li>Flexible natural-language reasoning; less explicit rule code.</li>
+<li>Nothing to maintain.</li>
 </ul>
 <p><strong>Cons</strong>:</p>
 <ul>
-<li>Hallucinated or illegal suggestions; non-reproducible; per-review LLM cost on
-  the hot path; ignores that the signals are already computed.</li>
+<li>Misjudgments recur; no regression guard; the corpus never forms.</li>
 </ul>
-<h3 id="option-3-train-or-fine-tune-a-model-now">Option 3: Train or fine-tune a model now<a class="headerlink" href="#option-3-train-or-fine-tune-a-model-now" title="Permanent link">&para;</a></h3>
+<h3 id="option-3-track-issues-only-in-an-external-tracker">Option 3: Track issues only in an external tracker<a class="headerlink" href="#option-3-track-issues-only-in-an-external-tracker" title="Permanent link">&para;</a></h3>
 <p><strong>Pros</strong>:</p>
 <ul>
-<li>Could internalize synergy and power judgment.</li>
+<li>Uses existing tooling.</li>
 </ul>
 <p><strong>Cons</strong>:</p>
 <ul>
-<li>No labeled corpus yet; premature and expensive. The review logs accumulate
-  that corpus for a possible future phase.</li>
+<li>Cases are not reproducible or wired to the test suite; prose drifts from the
+  deterministic engine it is meant to correct.</li>
 </ul>
 <h2 id="consequences">Consequences<a class="headerlink" href="#consequences" title="Permanent link">&para;</a></h2>
 <h3 id="positive">Positive<a class="headerlink" href="#positive" title="Permanent link">&para;</a></h3>
 <ul>
-<li>The "LLM proposes, deterministic code disposes" seam holds: suggestions are
-  re-validated before display.</li>
-<li>Review p95 is fast (DB lookups + math, not an LLM call).</li>
-<li>Review logs capture inputs, scores, and accept/reject as a future training set.</li>
+<li>The lens and spine heuristics improve monotonically against a growing corpus.</li>
+<li>A labeled training set accrues for the deferred model phase (ADR-003).</li>
+<li>Fixes are reproducible and enforced in CI, not narrative.</li>
 </ul>
 <h3 id="trade-offs">Trade-offs<a class="headerlink" href="#trade-offs" title="Permanent link">&para;</a></h3>
 <ul>
-<li>Heuristic scores are tuning guides, not playtesting; surface them as such.</li>
-<li>The bracket system is beta; gate rules and the Game Changers list live in
-  refreshable, effective-dated config (see <a href="../adr-002-data-model/">ADR-002</a>).</li>
+<li>Capturing full user decklists costs storage and demands a real privacy posture.
+  ADR-002 provenance fields describe external licensed reference data, not private
+  user decks, so they do not cover this case: the posture is defined explicitly
+  under "Privacy and retention" below (user-scoped, consent-gated, retention-
+  bounded) rather than assumed from ADR-002.</li>
 </ul>
 <h3 id="technical-debt">Technical Debt<a class="headerlink" href="#technical-debt" title="Permanent link">&para;</a></h3>
 <ul>
-<li>Functional tagging reliability is the weak point; EDHREC/Scryfall tags cover
-  most cards but need hand-correction at the edges.</li>
+<li>Triage can backlog; needs a lightweight status on each entry (captured, triaged,
+  resolved) so escapes are not lost.</li>
 </ul>
-<h2 id="implementation">Implementation<a class="headerlink" href="#implementation" title="Permanent link">&para;</a></h2>
+<h3 id="privacy-and-retention">Privacy and retention<a class="headerlink" href="#privacy-and-retention" title="Permanent link">&para;</a></h3>
+<ul>
+<li>The learnings log stores private user decklists, so it is user-scoped: every
+  entry is owned by the user whose review produced it, and access follows the
+  same <code>user_id</code> scoping as <code>DeckReview</code>.</li>
+<li>Capture is consent-gated: a review is logged for learning only when the user
+  flags it (the explicit feedback action), never silently on every review.</li>
+<li>Retention is bounded and the snapshot is minimized to what reproduces the case
+  (resolved <code>oracle_id</code> list, commander, version vector, verdicts, correction),
+  not free-form user data.</li>
+<li>Any future promotion of entries into a shared, data-owned training corpus is a
+  separate, explicitly consented data-service step, not an automatic consequence
+  of logging.</li>
+</ul>
+<blockquote>
+<p><strong>RAD</strong> <code>#CRITICAL</code> security/privacy: the learnings log stores private user
+decklists; capture must be user-scoped, consent-gated (written only on an explicit
+user flag), and retention-bounded, and any promotion to a shared corpus must be
+separately consented. <code>#VERIFY</code>: the feedback route writes a log entry only on an
+explicit flag (never on every review); access tests assert <code>user_id</code> scoping
+matches <code>DeckReview</code>; no implicit logging path exists.</p>
+</blockquote>
+<h3 id="v1-scope-what-ships-first">v1 Scope (what ships first)<a class="headerlink" href="#v1-scope-what-ships-first" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>v1 (capture only, Phase 3)</strong>: persist <code>DeckReview</code> with the full
+  <code>DeckSnapshot</code> and version vector (already in the plan) plus a <code>flagged</code>
+  field/reason on the feedback route (<code>POST /reviews/{id}/feedback</code>). That alone
+  is the reproducible corpus and the labeled training set.</li>
+<li><strong>Phase 4 (triage + CI gate)</strong>: the triage workflow, the captured/triaged/
+  resolved status model, the conversion of entries into lens checks or golden
+  fixtures, and the meta-test, all land with the eval-harness-to-CI-regression
+  work in Phase 4. The backlog-policing meta-test is explicitly a Phase 4 item so
+  it cannot fail CI before the pipeline that produces escapes even exists.</li>
+</ul>
 <h3 id="components-affected">Components Affected<a class="headerlink" href="#components-affected" title="Permanent link">&para;</a></h3>
 <ol>
-<li><strong>scorecard</strong>: deterministic scoring modules (power, bracket, role, manabase).</li>
-<li><strong>suggestions</strong>: role-gap and bracket-driven ranker with re-validation and
-   ownership/price annotation.</li>
-<li><strong>generator</strong>: swappable LLM explanation backend (no scoring authority).</li>
+<li><strong>learnings log</strong> (v1 capture): app-owned, user-scoped, append-only store of
+   flagged-review cases with the <code>DeckSnapshot</code> reference, version vector, lens
+   verdicts, and human correction.</li>
+<li><strong>triage workflow</strong> (Phase 4): converts an entry into a lens check or a golden
+   fixture and marks it resolved.</li>
+<li><strong>test suite</strong> (Phase 4): consumes the golden fixtures as regression tests in
+   CI.</li>
 </ol>
 <h3 id="testing-strategy">Testing Strategy<a class="headerlink" href="#testing-strategy" title="Permanent link">&para;</a></h3>
 <ul>
-<li>Unit + property-based tests on the legality gate and scoring (golden decks);
-  mock the generator and assert it cannot alter a score or legality verdict.</li>
+<li>Each resolved entry adds a regression test; a meta-test (Phase 4) asserts no
+  entry sits in the captured state without a linked check or fixture beyond a
+  grace window. The meta-test is gated to Phase 4 so backlog policing never blocks
+  CI during earlier phases.</li>
 </ul>
 <h2 id="validation">Validation<a class="headerlink" href="#validation" title="Permanent link">&para;</a></h2>
 <h3 id="success-criteria">Success Criteria<a class="headerlink" href="#success-criteria" title="Permanent link">&para;</a></h3>
 <ul class="task-list">
-<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Identical inputs and rules-version yield identical scorecards.</li>
-<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Every suggested add passes legality re-validation.</li>
-<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Disabling the LLM still produces a complete scorecard and suggestions.</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> A flagged review produces a reproducible log entry (re-runs to the same
+      lens verdicts).</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Every resolved entry is backed by a deterministic check or a golden fixture.</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> A previously fixed misjudgment fails CI if it regresses.</li>
 </ul>
 <h2 id="related">Related<a class="headerlink" href="#related" title="Permanent link">&para;</a></h2>
 <ul>
-<li><a href="../adr-001-initial-architecture/">ADR-001: Architecture</a></li>
 <li><a href="../adr-002-data-model/">ADR-002: Data Model</a></li>
+<li><a href="../adr-003-engine-approach/">ADR-003: Engine Approach</a></li>
 <li><a href="../adr-004-multi-lens-critique-reviewers/">ADR-004: Multi-Lens Critique Reviewers</a></li>
 <li><a href="../adr-005-archetype-critique-spines/">ADR-005: Archetype Critique Spines</a></li>
-<li><a href="../adr-006-compounding-learnings-log/">ADR-006: Compounding Learnings Log</a></li>
-<li><a href="../../tech-spec/">Technical Spec</a></li>
-<li><a href="../../project-vision/">Project Vision</a></li>
+<li><a href="../../fluiddocs-deck-builder-review/">FluidDocs Deck-Builder Review</a></li>
 </ul>
 
 
@@ -1550,7 +1612,7 @@ model.</strong></p>
     <span class="md-icon" title="Created">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M14.47 15.08 11 13V7h1.5v5.25l3.08 1.83c-.41.28-.79.62-1.11 1m-1.39 4.84c-.36.05-.71.08-1.08.08-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8c0 .37-.03.72-.08 1.08.69.1 1.33.32 1.92.64.1-.56.16-1.13.16-1.72 0-5.5-4.5-10-10-10S2 6.5 2 12s4.47 10 10 10c.59 0 1.16-.06 1.72-.16-.32-.59-.54-1.23-.64-1.92M18 15v3h-3v2h3v3h2v-3h3v-2h-3v-3z"/></svg>
     </span>
-    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="June 3, 2026 01:08:36 UTC">June 3, 2026</span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="June 9, 2026 17:11:53 UTC">June 9, 2026</span>
   </span>
 
     

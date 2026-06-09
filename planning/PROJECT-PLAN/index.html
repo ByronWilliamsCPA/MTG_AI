@@ -1193,6 +1193,17 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#adr-004005006-critique-structure-archetype-spines-and-the-learnings-loop" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ADR-004/005/006: Critique Structure, Archetype Spines, and the Learnings Loop
+      
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -1431,14 +1442,21 @@
   <h1>MTG AI - Project Plan</h1>
 
 <blockquote>
-<p><strong>Status</strong>: Active | <strong>Version</strong>: 1.0 | <strong>Updated</strong>: 2026-06-01</p>
+<p><strong>Status</strong>: Active | <strong>Version</strong>: 1.1 | <strong>Updated</strong>: 2026-06-08</p>
 <p>Synthesized from:
 <a href="../project-vision/">project-vision.md</a>,
 <a href="../tech-spec/">tech-spec.md</a>,
 <a href="../roadmap/">roadmap.md</a>,
 <a href="../adr/adr-001-initial-architecture/">ADR-001</a>,
 <a href="../adr/adr-002-data-model/">ADR-002</a>,
-<a href="../adr/adr-003-engine-approach/">ADR-003</a></p>
+<a href="../adr/adr-003-engine-approach/">ADR-003</a>,
+<a href="../adr/adr-004-multi-lens-critique-reviewers/">ADR-004</a>,
+<a href="../adr/adr-005-archetype-critique-spines/">ADR-005</a>,
+<a href="../adr/adr-006-compounding-learnings-log/">ADR-006</a></p>
+<p><strong>v1.1 amendment (2026-06-08)</strong>: ADR-004/005/006 accepted after a multi-lens
+panel review and threaded into the phases below. ADR-005 and ADR-006 are
+deliberately scoped down for v1 (one archetype spine + override; capture-only
+learnings log) to bound solo-maintainer cost.</p>
 </blockquote>
 <p><strong>Project</strong>: MTG AI
 <strong>Repository</strong>: https://github.com/ByronWilliamsCPA/MTG_AI
@@ -1542,6 +1560,36 @@ and land <code>Card.produced_mana</code>). The LLM is explanation-only behind a 
 exist as precomputed data. Determinism guarantees correctness and reproducibility;
 bounding the LLM to explanation keeps it off the correctness path and bounds cost.</p>
 <p>Reference: <a href="../adr/adr-003-engine-approach/">adr-003-engine-approach.md</a></p>
+<h3 id="adr-004005006-critique-structure-archetype-spines-and-the-learnings-loop">ADR-004/005/006: Critique Structure, Archetype Spines, and the Learnings Loop<a class="headerlink" href="#adr-004005006-critique-structure-archetype-spines-and-the-learnings-loop" title="Permanent link">&para;</a></h3>
+<p><strong>Decision</strong>: Three accepted refinements of the deterministic engine, all behind
+the ADR-003 boundary (the LLM still only explains). (004) The scorecard is built
+as independent, category-owning <strong>lenses</strong> over one app-owned, versioned
+<code>DeckSnapshot</code>, aggregated by a gate; lenses are pure functions and run
+sequentially in v1. (005) Lenses read <strong>archetype spines</strong> (role targets,
+thresholds, weights) as effective-dated, data-owned config; v1 ships a single
+generic-midrange spine plus a user override, deferring the deterministic
+classifier and additional spines. (006) Flagged reviews append to an <strong>app-owned,
+user-scoped learnings log</strong> referencing the reproducing snapshot; v1 captures
+entries, while triage into checks/fixtures and the CI-regression meta-test land
+in Phase 4.</p>
+<p><strong>Rationale</strong>: Attributable lenses remove single-pass blind spots and parallelize
+later for free; archetype-as-data stops the engine from scoring every deck against
+one mean; the learnings log makes review quality compound. The v1 scope-downs keep
+the architectural seams (snapshot, spine-as-config, app-owned log) while bounding
+solo-maintainer cost. The snapshot carries the full version vector
+(<code>rules_version</code>, <code>spine_version</code>, <code>archetype</code>, <code>classifier_version</code>) so reviews
+stay reproducible.</p>
+<blockquote>
+<p><strong>RAD</strong> <code>#CRITICAL</code> data-integrity/concurrency: lenses are pure functions of the
+versioned <code>DeckSnapshot</code>, so reviews reproduce regardless of execution order.
+<code>#CRITICAL</code> security/privacy: the learnings log is user-scoped, consent-gated, and
+retention-bounded. <code>#VERIFY</code>: enforced by the per-lens property tests, the snapshot
+reproducibility test, and the feedback-route consent checks specified in ADR-004
+and ADR-006.</p>
+</blockquote>
+<p>References: <a href="../adr/adr-004-multi-lens-critique-reviewers/">adr-004</a>,
+<a href="../adr/adr-005-archetype-critique-spines/">adr-005</a>,
+<a href="../adr/adr-006-compounding-learnings-log/">adr-006</a></p>
 <hr />
 <h2 id="technology-stack">Technology Stack<a class="headerlink" href="#technology-stack" title="Permanent link">&para;</a></h2>
 <p>Source: <a href="../tech-spec/">tech-spec.md</a></p>
@@ -1880,7 +1928,8 @@ data to score. Ingestion is idempotent and degrades, not breaks. See
   (theme/role buckets). Polite cache; no redistribution.</li>
 <li><code>ingestion/spellbook</code>: combos (<code>CardCombo</code>), bracket estimate reference data.</li>
 <li><code>reference_config</code>: versioned, effective-dated <code>GameChanger</code> and <code>BracketDef</code> records;
-  refreshable independent of card data.</li>
+  refreshable independent of card data. Includes the effective-dated <strong>archetype
+  spine</strong> schema with one seeded generic-midrange spine (ADR-005, data-owned).</li>
 <li><code>scheduler</code> with set-release vs daily cadence; <code>IngestReport</code> per run.</li>
 <li>CLI commands: <code>mtg-ai sync cards</code>, <code>mtg-ai sync edhrec</code>, <code>mtg-ai sync rules</code>.</li>
 </ul>
@@ -1933,13 +1982,21 @@ is the core correctness layer of the system. See
   unresolved names surfaced, never guessed.</li>
 <li><code>rules</code>: deterministic legality/identity gate. Developed with TDD and property-based
   tests (Hypothesis). No LLM involvement.</li>
-<li><code>scorecard</code>: functional power (Disciple-of-the-Vault 1-10); bracket placement (gate
-  logic over versioned Game Changers); role coverage vs archetype targets; Karsten
-  manabase check using <code>Card.mana_cost</code> pips and land <code>Card.produced_mana</code>. Synergy
-  and average lift reported separately, never blended into the power score.</li>
+<li><code>scorecard</code> built as independent, category-owning <strong>lenses</strong> (legality/identity,
+  power/bracket, consistency/manabase, interaction/role, wincon/combo) over one
+  <code>DeckSnapshot</code>, composed by an <strong>aggregator</strong> that enforces the legality gate
+  first (ADR-004): functional power (Disciple-of-the-Vault 1-10); bracket placement
+  (gate logic over versioned Game Changers); role coverage vs the resolved archetype
+  spine (ADR-005, generic-midrange or user override in v1); Karsten manabase check
+  using <code>Card.mana_cost</code> pips and land <code>Card.produced_mana</code>. Synergy and average lift
+  reported separately, never blended into the power score. Lenses run sequentially.</li>
+<li><code>DeckSnapshot</code>: app-owned, persisted resolved-deck artifact carrying the version
+  vector (<code>rules_version</code>, <code>spine_version</code>, <code>archetype</code>, <code>classifier_version</code>); the
+  shared reproducibility contract for scoring and the Phase 3 learnings log.</li>
 <li><code>POST /api/v1/decks/import</code> and <code>GET /api/v1/decks/{id}</code> (owner only).</li>
 <li><code>POST /api/v1/decks/{id}/review</code>: returns scorecard only; persists <code>DeckReview</code>
-  with <code>rules_version</code>; suggestions and collection added in Phase 3.</li>
+  with the <code>DeckSnapshot</code> and <code>rules_version</code>; suggestions and collection added in
+  Phase 3.</li>
 </ul>
 <h4 id="acceptance-criteria_2">Acceptance Criteria<a class="headerlink" href="#acceptance-criteria_2" title="Permanent link">&para;</a></h4>
 <p>From <a href="../roadmap/">roadmap.md</a>:</p>
@@ -2008,7 +2065,10 @@ frontend on the full pipeline.</p>
   response without prose.</li>
 <li>Frontend: React 18 + Vite; import view, collection view, and review view with
   accept/reject controls and value-per-dollar sort.</li>
-<li><code>POST /api/v1/reviews/{id}/feedback</code>: persist accept/reject labels.</li>
+<li><code>POST /api/v1/reviews/{id}/feedback</code>: persist accept/reject labels and a
+  <code>flagged</code> field/reason. A flagged review appends an entry to the app-owned,
+  user-scoped <strong>learnings log</strong> referencing the <code>DeckSnapshot</code> (ADR-006, capture
+  only; triage deferred to Phase 4).</li>
 <li>One Playwright happy-path e2e: import deck -&gt; review -&gt; feedback.</li>
 </ul>
 <h4 id="acceptance-criteria_3">Acceptance Criteria<a class="headerlink" href="#acceptance-criteria_3" title="Permanent link">&para;</a></h4>
@@ -2066,6 +2126,10 @@ release.</p>
 <ul>
 <li>Promote the Phase 2 eval harness to a CI regression gate on review quality:
   known decks with expected cuts/adds run on every CI build.</li>
+<li>Learnings-log <strong>triage workflow</strong> (ADR-006): convert each captured entry into a
+  lens check or a golden regression fixture; a meta-test asserts no entry sits
+  captured-but-unresolved beyond a grace window. This backlog-policing test is
+  gated to Phase 4 so it never blocks CI in earlier phases.</li>
 <li>Per-user rate limit and LLM cost guard.</li>
 <li>Structured JSON logging with correlation IDs; secrets never logged.</li>
 <li>Coverage &gt;= 80% overall, &gt;= 90% on <code>rules</code> and <code>scorecard</code>; security review clean.</li>
@@ -2257,7 +2321,7 @@ Phase 1.</p>
 <li><a href="https://github.com/ByronWilliamsCPA/MTG_AI/blob/main/SECURITY.md">Security Policy</a></li>
 </ul>
 <hr />
-<p><strong>Last Updated</strong>: 2026-06-01
+<p><strong>Last Updated</strong>: 2026-06-08
 <strong>Next Review</strong>: Before Phase 1 kickoff (or after any roadmap change)
 <strong>Approved By</strong>: Byron Williams (core-maintainer)</p>
 
@@ -2282,7 +2346,7 @@ Phase 1.</p>
     <span class="md-icon" title="Last update">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"/></svg>
     </span>
-    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="June 3, 2026 01:08:36 UTC">June 3, 2026</span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="June 9, 2026 17:11:53 UTC">June 9, 2026</span>
   </span>
 
     
