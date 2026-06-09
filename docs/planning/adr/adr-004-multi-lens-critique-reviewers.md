@@ -71,6 +71,13 @@ and must all pass before release.
   power/bracket, consistency/manabase, interaction/role, and wincon/combo each
   emit a verdict plus observations that the aggregator composes into the
   scorecard. A failing legality gate short-circuits before the soft lenses run.
+
+  > **RAD** `#CRITICAL` data-integrity: lenses are pure functions of one snapshot,
+  > so no lens can read or silently compensate for another's state. `#CRITICAL`
+  > timing: a failing legality gate must short-circuit before any soft lens runs.
+  > `#VERIFY`: aggregation test proving lens order does not change output and that a
+  > failing legality gate short-circuits (see Testing Strategy and Success Criteria
+  > below).
 - **Pure, order-independent, parallelizable later**: the soft lenses are pure
   functions of the snapshot and rules-version with no shared mutable state, so
   their output is independent of execution order. v1 runs them sequentially
@@ -163,6 +170,12 @@ versioned, so its contents and ownership are fixed at this layer.
   and its versioned inputs. The `archetype` and `classifier_version` needed for
   full reproducibility live on the `DeckSnapshot`, not on each lens result, so
   they are not repeated per lens.
+
+> **RAD** `#CRITICAL` data-integrity/concurrency: a review is a pure function of the
+> `DeckSnapshot`; identical snapshots yield identical lens results regardless of
+> execution order or parallelism. `#VERIFY`: property test that re-running scoring on
+> the same persisted snapshot reproduces identical lens verdicts under shuffled lens
+> order (see Success Criteria below).
 
 ### Components Affected
 

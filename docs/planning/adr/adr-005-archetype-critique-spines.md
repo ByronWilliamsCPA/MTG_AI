@@ -75,6 +75,12 @@ its own structure rather than inheriting one generic template.
   classifier rule change cannot silently alter a past review for identical
   inputs. The chosen archetype, spine version, and classifier version are all
   recorded on the review (in the `DeckSnapshot` defined in ADR-004).
+
+  > **RAD** `#CRITICAL` data-integrity: a classifier-code change must not silently
+  > alter a past review for identical inputs (ADR-002 effective-dating covers data,
+  > not code). `#VERIFY`: `classifier_version` is recorded on the snapshot and a
+  > golden test asserts a past review re-runs to the same archetype under a bumped
+  > classifier (see Success Criteria below).
 - **Spine as data**: each spine declares role targets (ramp, interaction, card
   advantage, threats, win lines), thresholds, and per-lens weights; spines carry
   effective dates exactly like the bracket rules and Game Changers list in

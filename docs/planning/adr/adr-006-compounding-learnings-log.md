@@ -158,6 +158,13 @@ process compounds across decks.
   separate, explicitly consented data-service step, not an automatic consequence
   of logging.
 
+> **RAD** `#CRITICAL` security/privacy: the learnings log stores private user
+> decklists; capture must be user-scoped, consent-gated (written only on an explicit
+> user flag), and retention-bounded, and any promotion to a shared corpus must be
+> separately consented. `#VERIFY`: the feedback route writes a log entry only on an
+> explicit flag (never on every review); access tests assert `user_id` scoping
+> matches `DeckReview`; no implicit logging path exists.
+
 ### v1 Scope (what ships first)
 
 - **v1 (capture only, Phase 3)**: persist `DeckReview` with the full

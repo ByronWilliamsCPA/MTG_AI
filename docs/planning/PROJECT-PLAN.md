@@ -180,6 +180,13 @@ solo-maintainer cost. The snapshot carries the full version vector
 (`rules_version`, `spine_version`, `archetype`, `classifier_version`) so reviews
 stay reproducible.
 
+> **RAD** `#CRITICAL` data-integrity/concurrency: lenses are pure functions of the
+> versioned `DeckSnapshot`, so reviews reproduce regardless of execution order.
+> `#CRITICAL` security/privacy: the learnings log is user-scoped, consent-gated, and
+> retention-bounded. `#VERIFY`: enforced by the per-lens property tests, the snapshot
+> reproducibility test, and the feedback-route consent checks specified in ADR-004
+> and ADR-006.
+
 References: [adr-004](./adr/adr-004-multi-lens-critique-reviewers.md),
 [adr-005](./adr/adr-005-archetype-critique-spines.md),
 [adr-006](./adr/adr-006-compounding-learnings-log.md)
