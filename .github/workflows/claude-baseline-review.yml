@@ -1,0 +1,60 @@
+# ============================================================================
+# Claude Baseline Review -- caller for the MTG_AI repo
+# ============================================================================
+# Thin caller for the Tier 0 baseline reviewer. The reviewer logic, security
+# posture, and prompt live in the reusable workflow in ByronWilliamsCPA/.github;
+# this file only supplies the trigger, the permission ceiling, and this repo's
+# framing. Part of the tiered-pr-review fleet rollout.
+#
+# #CRITICAL: a called (reusable) workflow runs with a token bounded by the
+# CALLER job's permissions. The four scopes below are the ceiling the reusable
+# needs (id-token for the Claude App OIDC exchange); omitting any one fails the
+# run at startup.
+# #CRITICAL: do NOT add a workflow-level `concurrency` block here. The reusable
+# already declares one; a caller block resolves to the same group for a
+# pull_request event, and a called workflow that shares its caller's
+# concurrency group cancels its own parent, failing the run at startup.
+# ============================================================================
+name: Claude Baseline Review
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review, edited]
+    branches:
+      - main
+
+permissions: {}
+
+jobs:
+  review:
+    permissions:
+      contents: read
+      pull-requests: write
+      issues: write
+      id-token: write
+    # #VERIFY before bumping the pin: the target SHA must stay reachable from
+    # ByronWilliamsCPA/.github main. `gh api
+    # repos/ByronWilliamsCPA/.github/compare/main...<sha> --jq .status` must not
+    # return "diverged". Renovate tracks this pin.
+    uses: ByronWilliamsCPA/.github/.github/workflows/claude-baseline-review.yml@8de6560ef6089fa95d56c77186648186dac6ce26  # main
+    with:
+      repo-description: >-
+        a self-hosted competitive Commander (cEDH) deck-critique
+        assistant: RAG over Scryfall, MTGJSON, and meta data with a
+        deterministic rules engine and a swappable generation backend.
+      sensitive-paths: >-
+        .github/workflows/, pyproject.toml, src/, scripts/
+      escalation-guidance: |
+        - Changes to .github/workflows/ that touch permissions:, secrets,
+          id-token, or on: triggers.
+        - Changes to dependency manifests (pyproject.toml, requirements files,
+          package.json, lockfiles) that add or change a dependency source.
+        - Changes that touch secret handling, authentication, or credential
+          storage.
+        - Changes under scripts/ that perform writes via gh api, handle secrets,
+          or transfer or delete resources.
+    # Least-privilege: pass only the one secret the reusable declares in its
+    # workflow_call.secrets contract (ANTHROPIC_API_KEY, required: true), rather
+    # than forwarding every inherited secret via `secrets: inherit`.
+    secrets:
+      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}  # pragma: allowlist secret

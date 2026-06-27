@@ -8,6 +8,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- CI: Claude Tier 0 baseline PR review caller
+  (`.github/workflows/claude-baseline-review.yml`), a thin caller of the org
+  reusable in `ByronWilliamsCPA/.github`. Part of the org-wide tiered-pr-review
+  rollout.
 - Initial project setup and structure
 - Phase 0 foundation: shared `mtg_ai.schema` package with two declarative bases
   mapped to separate `data` and `app` Postgres schemas (ADR-001/ADR-002)
