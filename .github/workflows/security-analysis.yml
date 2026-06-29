@@ -9,6 +9,7 @@
 name: Security Analysis
 
 "on":
+  merge_group:
   push:
     branches: [main, master]
   pull_request:
@@ -81,7 +82,9 @@ jobs:
           retention-days: 30
 
   security-gate-success:
-    name: Security Analysis / Security Gate Validation
+    # Bare context "Security Gate Validation" required by the org ruleset.
+    # A standalone (non-reusable) job's check context equals its name verbatim.
+    name: Security Gate Validation
     runs-on: ubuntu-latest
     timeout-minutes: 10
     needs: [security]

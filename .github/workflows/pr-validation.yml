@@ -5,6 +5,7 @@
 name: PR Validation
 
 on:
+  merge_group:
   pull_request:
     types: [opened, synchronize, reopened]
     branches:
