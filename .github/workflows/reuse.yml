@@ -1,6 +1,7 @@
 name: REUSE Compliance
 
 on:
+  merge_group:
   pull_request:
     paths:
       - "**/*"
