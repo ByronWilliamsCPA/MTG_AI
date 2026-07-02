@@ -24,106 +24,184 @@
   ],
   "packageRules": [
     {
-      "description": "Track org reusable workflow versions via followTag",
-      "matchPackagePatterns": ["ByronWilliamsCPA/.github", "williaby/.github"],
-      "followTag": "v1",
+      "description": "Advance org reusable-workflow SHA pins to the latest semver release tag. No followTag: the org tag-protection ruleset makes every vX.Y.Z tag immutable and no floating major tag exists, so a followed tag would freeze pins permanently.",
+      "matchPackagePatterns": [
+        "ByronWilliamsCPA/.github",
+        "williaby/.github"
+      ],
       "automerge": false,
-      "labels": ["dependencies", "github-actions"]
+      "labels": [
+        "dependencies",
+        "github-actions"
+      ],
+      "versioning": "semver"
     },
     {
       "description": "Group Python dependencies by type",
-      "matchManagers": ["pep621"],
-      "matchDepTypes": ["dependencies"],
+      "matchManagers": [
+        "pep621"
+      ],
+      "matchDepTypes": [
+        "dependencies"
+      ],
       "groupName": "Python dependencies",
       "automerge": false,
-      "schedule": ["every weekend"]
+      "schedule": [
+        "every weekend"
+      ]
     },
     {
       "description": "Group Python dev dependencies",
-      "matchManagers": ["pep621"],
-      "matchDepTypes": ["dev"],
+      "matchManagers": [
+        "pep621"
+      ],
+      "matchDepTypes": [
+        "dev"
+      ],
       "groupName": "Python dev dependencies",
       "automerge": false,
-      "schedule": ["every weekend"]
+      "schedule": [
+        "every weekend"
+      ]
     },
     {
       "description": "Group npm dependencies",
-      "matchManagers": ["npm"],
-      "matchDepTypes": ["dependencies"],
+      "matchManagers": [
+        "npm"
+      ],
+      "matchDepTypes": [
+        "dependencies"
+      ],
       "groupName": "npm dependencies",
       "automerge": false,
-      "schedule": ["every weekend"]
+      "schedule": [
+        "every weekend"
+      ]
     },
     {
       "description": "Group npm dev dependencies",
-      "matchManagers": ["npm"],
-      "matchDepTypes": ["devDependencies"],
+      "matchManagers": [
+        "npm"
+      ],
+      "matchDepTypes": [
+        "devDependencies"
+      ],
       "groupName": "npm dev dependencies",
       "automerge": false,
-      "schedule": ["every weekend"]
+      "schedule": [
+        "every weekend"
+      ]
     },
     {
       "description": "Auto-merge GitHub Actions minor/patch updates",
-      "matchManagers": ["github-actions"],
-      "matchUpdateTypes": ["minor", "patch"],
+      "matchManagers": [
+        "github-actions"
+      ],
+      "matchUpdateTypes": [
+        "minor",
+        "patch"
+      ],
       "automerge": true,
       "automergeType": "pr",
       "automergeStrategy": "squash"
     },
     {
       "description": "Group GitHub Actions updates",
-      "matchManagers": ["github-actions"],
+      "matchManagers": [
+        "github-actions"
+      ],
       "groupName": "GitHub Actions",
       "commitMessageTopic": "GitHub Actions"
     },
     {
       "description": "Security updates - high priority",
-      "matchDatasources": ["pypi", "npm", "github-actions"],
+      "matchDatasources": [
+        "pypi",
+        "npm",
+        "github-actions"
+      ],
       "vulnerabilityAlerts": {
         "enabled": true
       },
-      "labels": ["security", "dependencies"],
+      "labels": [
+        "security",
+        "dependencies"
+      ],
       "automerge": false,
-      "schedule": ["at any time"]
+      "schedule": [
+        "at any time"
+      ]
     },
     {
       "description": "Critical security updates - immediate",
-      "matchDatasources": ["pypi"],
+      "matchDatasources": [
+        "pypi"
+      ],
       "matchCurrentVersion": "!/^0/",
       "vulnerabilityAlerts": {
         "enabled": true
       },
-      "matchSeverity": ["CRITICAL", "HIGH"],
-      "labels": ["security", "critical", "dependencies"],
+      "matchSeverity": [
+        "CRITICAL",
+        "HIGH"
+      ],
+      "labels": [
+        "security",
+        "critical",
+        "dependencies"
+      ],
       "automerge": false,
       "prPriority": 10,
-      "schedule": ["at any time"]
+      "schedule": [
+        "at any time"
+      ]
     },
     {
       "description": "Pin GitHub Actions to commit SHA",
-      "matchManagers": ["github-actions"],
+      "matchManagers": [
+        "github-actions"
+      ],
       "pinDigests": true
     },
     {
       "description": "Pydantic v2 - maintain major version",
-      "matchPackageNames": ["pydantic", "pydantic-settings"],
-      "matchUpdateTypes": ["major"],
+      "matchPackageNames": [
+        "pydantic",
+        "pydantic-settings"
+      ],
+      "matchUpdateTypes": [
+        "major"
+      ],
       "enabled": false,
-      "labels": ["dependencies", "breaking-change"]
+      "labels": [
+        "dependencies",
+        "breaking-change"
+      ]
     },
     {
       "description": "Python version updates - manual review required",
-      "matchDepTypes": ["python"],
+      "matchDepTypes": [
+        "python"
+      ],
       "enabled": false,
-      "labels": ["dependencies", "python-version", "breaking-change"]
+      "labels": [
+        "dependencies",
+        "python-version",
+        "breaking-change"
+      ]
     }
   ],
   "lockFileMaintenance": {
     "enabled": true,
-    "schedule": ["before 5am on monday"],
+    "schedule": [
+      "before 5am on monday"
+    ],
     "commitMessageAction": "Update",
     "automerge": false,
-    "labels": ["dependencies", "lock-file-maintenance"]
+    "labels": [
+      "dependencies",
+      "lock-file-maintenance"
+    ]
   },
   "separateMajorMinor": true,
   "separateMinorPatch": false,
@@ -135,16 +213,24 @@
   "rangeStrategy": "bump",
   "vulnerabilityAlerts": {
     "enabled": true,
-    "labels": ["security"],
-    "assignees": ["ByronWilliamsCPA"],
-    "reviewers": ["ByronWilliamsCPA"]
+    "labels": [
+      "security"
+    ],
+    "assignees": [
+      "ByronWilliamsCPA"
+    ],
+    "reviewers": [
+      "ByronWilliamsCPA"
+    ]
   },
   "osvVulnerabilityAlerts": true,
   "transitiveRemediation": true,
   "customManagers": [
     {
       "customType": "regex",
-      "managerFilePatterns": ["^\\.github/workflows/.*\\.ya?ml$"],
+      "managerFilePatterns": [
+        "^\\.github/workflows/.*\\.ya?ml$"
+      ],
       "matchStrings": [
         "# renovate: datasource=(?<datasource>.*?) depName=(?<depName>.*?)\\s+.*?_VERSION:\\s*[\"']?(?<currentValue>.*?)[\"']?\\s"
       ]
