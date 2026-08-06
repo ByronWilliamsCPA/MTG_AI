@@ -17,11 +17,15 @@ permissions:
 jobs:
   sonarcloud:
     name: SonarCloud Analysis
-    uses: ByronWilliamsCPA/.github/.github/workflows/python-sonarcloud.yml@40ff5b5615e786ee0867e1b9e8f21a4735036e63  # main
+    uses: ByronWilliamsCPA/.github/.github/workflows/python-sonarcloud.yml@4bd2d7c207a7fcf2dfcec8416c805d06d745c241  # main
     permissions:
       contents: read
       pull-requests: write
     with:
+      # Every version requires-python (">=3.10,<3.15") admits, not the single build version.
+      # SonarPython gates version-specific rules on ALL declared versions, so leaving this at
+      # the 3.12 default would raise 3.11+ and 3.12+ rules against code that must run on 3.10.
+      sonar-python-version: '3.10,3.11,3.12,3.13,3.14'
       sonar-organization: 'byronwilliamscpa'
       sonar-project-key: 'ByronWilliamsCPA_MTG_AI'
       coverage-paths: 'coverage.xml'
