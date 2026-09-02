@@ -382,7 +382,7 @@ Your project includes several GitHub Actions workflows:
 | Workflow | File | Purpose |
 |----------|------|---------|
 | CI Pipeline | `ci.yml` | Tests, linting, type checking |
-| Security Analysis | `security-analysis.yml` | Dependency scanning, CodeQL |
+| Security Analysis | `security-analysis.yml` | Bandit, OSV-Scanner dependency scanning |
 | PR Validation | `pr-validation.yml` | Lock file and requirements sync validation |
 | OpenSSF Scorecard | `scorecard.yml` | Supply chain security assessment |
 | SBOM & Security Scan | `sbom.yml` | Software Bill of Materials generation |
