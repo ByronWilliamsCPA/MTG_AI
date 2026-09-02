@@ -25,7 +25,6 @@ concurrency:
 
 permissions:
   contents: read
-  security-events: write
   pull-requests: write
 
 # Standalone security workflow

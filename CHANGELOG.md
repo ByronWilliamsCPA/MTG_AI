@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Removed
+
+- The `github/codeql-action/upload-sarif` step in `scorecard.yml`. SARIF
+  ingestion into the Security tab requires GitHub Advanced Security (Code
+  Security), which GitHub now bills separately and which is not enabled on
+  this repository. `scorecard.yml` already uploaded `results.sarif` as a
+  plain workflow artifact separately, so no replacement step was needed.
+  Pruned the now-unused `security-events: write` permission from
+  `scorecard.yml` and from `security-analysis.yml`'s workflow-level grant
+  (which had no consumer either before or after this change). Actual
+  SAST/SCA coverage for this repository is Bandit and OSV-Scanner
+  (`security-analysis.yml`); OpenSSF Scorecard continues to publish to the
+  public Scorecard API independent of the Security tab.
+
 ### Added
 - Initial project setup and structure
 - Phase 0 foundation: shared `mtg_ai.schema` package with two declarative bases
