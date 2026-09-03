@@ -81,7 +81,17 @@ jobs:
           retention-days: 30
 
   security-gate-success:
-    name: Security Analysis / Security Gate Validation
+    # This job runs its own `steps:` (no `uses:`), so GitHub emits its
+    # `name:` verbatim as the status-check context. There is no
+    # workflow-name prefix for a normal job; the "<caller> / <job>"
+    # two-part form only appears when a job invokes a reusable workflow
+    # via `uses:`. The org main ruleset requires the bare context
+    # "Security Gate Validation".
+    # #CRITICAL: the ruleset match is a literal string comparison against
+    # this `name:` field. #VERIFY with
+    # `gh api repos/ByronWilliamsCPA/MTG_AI/rules/branches/main` if this
+    # job is ever renamed.
+    name: Security Gate Validation
     runs-on: ubuntu-latest
     timeout-minutes: 10
     needs: [security]
@@ -95,10 +105,12 @@ jobs:
           egress-policy: audit
 
       - name: Check security scan results
+        env:
+          SECURITY_RESULT: ${{ needs.security.result }}
         run: |
-          if [ "${{ needs.security.result }}" == "success" ]; then
+          if [ "$SECURITY_RESULT" == "success" ]; then
             echo "Security Gate passed"
           else
-            echo "Security Gate failed: ${{ needs.security.result }}"
+            echo "Security Gate failed: $SECURITY_RESULT"
             exit 1
           fi
