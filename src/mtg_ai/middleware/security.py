@@ -125,6 +125,7 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
     def __init__(
         self,
         app: ASGIApp,
+        *,
         requests_per_minute: int = 60,
         burst_size: int = 10,
         max_tracked_ips: int = 10000,
