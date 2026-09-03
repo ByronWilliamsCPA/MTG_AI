@@ -1,7 +1,8 @@
 # PR Validation for MTG AI
-# Supplementary PR checks: dead code detection, changelog enforcement, and
-# documentation link validation. Python tests, linting, and type checking
-# are handled by ci.yml which runs on every push to the PR branch.
+# Supplementary PR checks: dead code detection and documentation link
+# validation. Conventional-commit PR titles are enforced in pr-title.yml.
+# Python tests, linting, and type checking are handled by ci.yml which runs
+# on every push to the PR branch.
 name: PR Validation
 
 on:
@@ -69,47 +70,6 @@ jobs:
             echo "✅ No dead code detected with 90% confidence." >> $GITHUB_STEP_SUMMARY
           fi
 
-  # Changelog Enforcement
-  changelog:
-    name: Changelog Check
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    # Skip via event payload to avoid GitHub API label-timing races on the
-    # opened event (e.g. Renovate PRs). Avoids out-of-step false positives
-    # when main advances after the PR was opened.
-    if: |
-      !contains(github.event.pull_request.labels.*.name, 'skip-changelog') &&
-      !contains(github.event.pull_request.labels.*.name, 'dependencies') &&
-      !contains(github.event.pull_request.labels.*.name, 'documentation') &&
-      !contains(github.event.pull_request.labels.*.name, 'automated')
-    permissions:
-      contents: read
-    steps:
-      - name: Harden the runner
-        uses: step-security/harden-runner@9af89fc71515a100421586dfdb3dc9c984fbf411 # v2.19.4
-        with:
-          egress-policy: audit
-
-      - name: Checkout repository
-        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
-        with:
-          fetch-depth: 0
-
-      - name: Check for CHANGELOG update
-        env:
-          BASE_REF: ${{ github.base_ref }}
-
-        run: |
-          git fetch origin "$BASE_REF" --no-tags
-          MERGE_BASE=$(git merge-base HEAD "origin/$BASE_REF")
-          if git diff --name-only "$MERGE_BASE" HEAD | grep -q "^CHANGELOG.md$"; then
-            echo "CHANGELOG.md was updated - check passed."
-          else
-            echo "::error::CHANGELOG.md was not updated. Please add a changelog entry, or add the 'skip-changelog' label if no entry is needed."
-            exit 1
-          fi
-
-
   # Documentation Link Check
   link-check:
     name: Documentation Links
@@ -150,7 +110,7 @@ jobs:
     name: Dependency & Standards Validation
     runs-on: ubuntu-latest
     timeout-minutes: 10
-    needs: [dead-code, changelog, link-check]
+    needs: [dead-code, link-check]
     if: always()
     steps:
       - name: Check validation results
@@ -164,13 +124,6 @@ jobs:
             echo "⚠️ Dead Code Check: ${{ needs.dead-code.result }}" >> $GITHUB_STEP_SUMMARY
           fi
 
-          if [ "${{ needs.changelog.result }}" == "success" ]; then
-            echo "✅ Changelog: Updated" >> $GITHUB_STEP_SUMMARY
-          elif [ "${{ needs.changelog.result }}" == "skipped" ]; then
-            echo "⏭️ Changelog: Skipped" >> $GITHUB_STEP_SUMMARY
-          else
-            echo "⚠️ Changelog: ${{ needs.changelog.result }}" >> $GITHUB_STEP_SUMMARY
-          fi
           if [ "${{ needs.link-check.result }}" == "success" ]; then
             echo "✅ Link Check: Passed" >> $GITHUB_STEP_SUMMARY
           else
