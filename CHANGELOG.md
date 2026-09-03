@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- `security-analysis.yml`: renamed the `security-gate-success` job from
+  `Security Analysis / Security Gate Validation` to the bare
+  `Security Gate Validation`. The old name only matches the context format a
+  reusable-workflow caller job emits; this is a normal job (no `uses:`), so
+  its context was the literal string with the slash, which never satisfied
+  the org ruleset's required `Security Gate Validation` context. Every open
+  PR was blocked on a check that could never report.
+
 ### Added
 - Initial project setup and structure
 - Phase 0 foundation: shared `mtg_ai.schema` package with two declarative bases
