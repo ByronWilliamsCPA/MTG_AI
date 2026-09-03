@@ -15,12 +15,17 @@ class TestAppFactory:
         assert isinstance(create_app(), FastAPI)
 
     def test_health_mounted_under_api_v1(self) -> None:
-        paths = {route.path for route in create_app().routes}  # type: ignore[attr-defined]
+        # #EDGE: FastAPI >=0.141 resolves included sub-routers lazily, so
+        # `app.routes` no longer exposes a flat list of `.path`-bearing
+        # Route objects. The OpenAPI schema is the public, stable surface
+        # for the fully-resolved path table. #VERIFY against FastAPI's
+        # release notes before switching back to walking `app.routes`.
+        paths = set(create_app().openapi()["paths"].keys())
         assert "/api/v1/health/live" in paths
         assert "/api/v1/health/ready" in paths
 
     def test_auth_routes_mounted_under_api_v1(self) -> None:
-        paths = {route.path for route in create_app().routes}  # type: ignore[attr-defined]
+        paths = set(create_app().openapi()["paths"].keys())
         assert "/api/v1/auth/login" in paths
         assert "/api/v1/auth/me" in paths
 
