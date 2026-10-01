@@ -93,7 +93,7 @@
       "vulnerabilityAlerts": {
         "enabled": true
       },
-      "matchSeverity": ["CRITICAL", "HIGH"],
+      "matchJsonata": ["isVulnerabilityAlert = true and (vulnerabilitySeverity = 'CRITICAL' or vulnerabilitySeverity = 'HIGH')"],
       "labels": ["security", "critical", "dependencies"],
       "automerge": false,
       "prPriority": 10,
