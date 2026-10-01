@@ -36,6 +36,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   npm dependency updates were silently skipped). npm is also included in the
   high-priority security-update rule and gets dedicated grouping rules
   matching the Python dependency grouping pattern.
+- Renovate: lock file maintenance PRs are exempt from the minimum release age gate, so they no longer stall on stability-days.
 
 ## [0.1.0] - TBD
 

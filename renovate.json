@@ -93,7 +93,7 @@
       "vulnerabilityAlerts": {
         "enabled": true
       },
-      "matchSeverity": ["CRITICAL", "HIGH"],
+      "matchJsonata": ["isVulnerabilityAlert = true and (vulnerabilitySeverity = 'CRITICAL' or vulnerabilitySeverity = 'HIGH')"],
       "labels": ["security", "critical", "dependencies"],
       "automerge": false,
       "prPriority": 10,
@@ -116,12 +116,19 @@
       "matchDepTypes": ["python"],
       "enabled": false,
       "labels": ["dependencies", "python-version", "breaking-change"]
+    },
+    {
+      "description": "Lock file maintenance has no release timestamp, so the global minimumReleaseAge would hold it on stability-days forever (timestamp-required since Renovate 42).",
+      "matchUpdateTypes": ["lockFileMaintenance"],
+      "minimumReleaseAge": null,
+      "prBodyNotes": [
+        "Renovate cannot validate Minimum Release Age for lock file maintenance; the package manager resolves the new versions. Review the lock diff before merging."
+      ]
     }
   ],
   "lockFileMaintenance": {
     "enabled": true,
     "schedule": ["before 5am on monday"],
-    "commitMessageAction": "Update",
     "automerge": false,
     "labels": ["dependencies", "lock-file-maintenance"]
   },
