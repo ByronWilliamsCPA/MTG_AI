@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Security
+
+- Dependencies: refreshed `uv.lock` to clear advisories reported by pip-audit and OSV-Scanner (urllib3 2.8.0, tornado 6.5.10, virtualenv 21.14.2, cryptography 50.0.2, starlette 1.7.0, python-multipart 0.0.32, and other flagged transitive packages).
+
 ### Added
 - Initial project setup and structure
 - Phase 0 foundation: shared `mtg_ai.schema` package with two declarative bases
