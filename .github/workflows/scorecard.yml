@@ -19,9 +19,6 @@ on:
 
 permissions:
   contents: read
-  security-events: write
-  id-token: write
-  actions: read
 
 # Standalone OpenSSF Scorecard workflow
 jobs:
@@ -67,4 +64,3 @@ jobs:
           name: scorecard-results
           path: results.sarif
           retention-days: 5
-
